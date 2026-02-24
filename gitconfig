@@ -1,0 +1,13 @@
+[user]
+	name = pratik
+	email = pratik@local
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[safe]
+	directory = /mnt/windows/Users/DELL/Desktop/code journal
+	directory = /mnt/windows/Users/DELL/Downloads/blog
+	directory = /mnt/windows/Users/DELL/Downloads/blog-alt
