@@ -9,7 +9,8 @@ alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 PS1='[\u@\h \W]\$ '
 
-export NVIDIA_API_KEY="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"
+# Secrets loaded from ~/.env_secrets (not backed up)
+[ -f ~/.env_secrets ] && source ~/.env_secrets
 
 export EDITOR=micro
 export VISUAL=micro
