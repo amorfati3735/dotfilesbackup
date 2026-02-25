@@ -309,10 +309,16 @@ Singleton {
         target: Config
         function onReadyChanged() {
             if (!Config.ready) return;
-            (Config?.options.ai?.extraModels ?? []).forEach(model => {
+            const extras = Config?.options.ai?.extraModels ?? [];
+            console.log("[AI] Config ready. extraModels count:", extras.length);
+            console.log("[AI] extraModels:", JSON.stringify(extras));
+            extras.forEach(model => {
                 const safeModelName = root.safeModelName(model["model"]);
+                console.log("[AI] Adding extra model:", safeModelName);
                 root.addModel(safeModelName, model)
             });
+            root.modelList = Object.keys(root.models);
+            console.log("[AI] Final modelList:", JSON.stringify(root.modelList));
         }
     }
 
