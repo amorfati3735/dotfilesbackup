@@ -16,6 +16,7 @@ bind
 bluez
 bluez-utils
 bongocat
+bt-dualboot
 btop
 btrfs-progs
 caelestia-cli
@@ -42,6 +43,7 @@ efibootmgr
 efitools
 endeavouros-keyring
 endeavouros-mirrorlist
+envycontrol
 eos-dracut
 eos-hooks
 ethtool
@@ -166,6 +168,7 @@ python-virtualenv
 qbittorrent
 qt5ct-kde
 qt6ct-kde
+rclone
 rebuild-detector
 reflector
 rofi
@@ -197,6 +200,7 @@ usb_modeswitch
 usbutils
 vicinae-bin
 visual-studio-code-bin
+vulkan-intel
 webapp-manager
 webkit2gtk
 wev

@@ -1,10 +1,12 @@
 antigravity
 app2unit
 bongocat
+bt-dualboot
 caelestia-cli
 caelestia-meta
 caelestia-shell
 cliwt
+envycontrol
 fsearch
 google-chrome
 grub-customizer
