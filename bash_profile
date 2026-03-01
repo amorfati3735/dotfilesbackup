@@ -8,5 +8,11 @@
 export PATH="/home/pratik/.amp/bin:$PATH"
 
 if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+  # Match startup refresh rate to power profile to avoid mode-switch blackout
+  if [ "$(powerprofilesctl get 2>/dev/null)" = "power-saver" ]; then
+    sed -i '/eDP-1/s/@[0-9.]*,/@60,/' ~/.config/hypr/monitors.conf
+  else
+    sed -i '/eDP-1/s/@[0-9.]*,/@120.03,/' ~/.config/hypr/monitors.conf
+  fi
   exec start-hyprland
 fi

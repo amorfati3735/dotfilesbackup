@@ -1,4 +1,5 @@
 accountsservice
+acpi
 alsa-firmware
 alsa-plugins
 alsa-utils
@@ -7,6 +8,7 @@ antigravity
 app2unit
 aria2
 ark
+ascii-image-converter-bin
 aspell
 b43-fwcutter
 base

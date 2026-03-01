@@ -1,5 +1,6 @@
 antigravity
 app2unit
+ascii-image-converter-bin
 bongocat
 bt-dualboot
 caelestia-cli
