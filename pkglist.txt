@@ -110,6 +110,7 @@ libwnck3
 linux
 linux-firmware
 linux-headers
+lmstudio-bin
 logrotate
 lolcat
 lsb-release
@@ -117,6 +118,7 @@ lsscsi
 lvm2
 man-db
 man-pages
+manga-tui
 mdadm
 meld
 mesa-utils
@@ -207,6 +209,8 @@ webapp-manager
 webkit2gtk
 wev
 which
+wl-gammarelay-rs
+wlr-randr
 wpa_supplicant
 xdg-desktop-portal-wlr
 xdg-utils

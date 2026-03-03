@@ -26,6 +26,8 @@ illogical-impulse-quickshell-git
 illogical-impulse-screencapture
 illogical-impulse-toolkit
 illogical-impulse-widgets
+lmstudio-bin
+manga-tui
 obsidian-bin
 pear-desktop-bin
 pokemon-colorscripts-git
@@ -39,4 +41,5 @@ upscayl-bin
 vicinae-bin
 visual-studio-code-bin
 webapp-manager
+wl-gammarelay-rs
 zen-browser-bin
