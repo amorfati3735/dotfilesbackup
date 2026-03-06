@@ -209,6 +209,18 @@ Singleton {
                         property real x: 400
                         property real y: 100
                     }
+                    property JsonObject media: JsonObject {
+                        property bool enable: true
+                        property string placementStrategy: "free"
+                        property real x: 100
+                        property real y: 400
+                    }
+                    property JsonObject images: JsonObject {
+                        property bool enable: true
+                        property string directory: "/home/pratik/Pictures/widgets"
+                        property real defaultWidth: 200
+                        property real defaultHeight: 200
+                    }
                 }
                 property string wallpaperPath: ""
                 property string thumbnailPath: ""

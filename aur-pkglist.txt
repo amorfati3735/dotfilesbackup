@@ -42,4 +42,5 @@ vicinae-bin
 visual-studio-code-bin
 webapp-manager
 wl-gammarelay-rs
+yewtube
 zen-browser-bin

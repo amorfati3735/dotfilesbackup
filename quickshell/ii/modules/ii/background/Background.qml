@@ -9,6 +9,7 @@ import qs.modules.common.functions as CF
 import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
+import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -16,7 +17,9 @@ import Quickshell.Hyprland
 
 import qs.modules.ii.background.widgets
 import qs.modules.ii.background.widgets.clock
+import qs.modules.ii.background.widgets.media
 import qs.modules.ii.background.widgets.weather
+import qs.modules.ii.background.widgets.images
 
 Variants {
     id: root
@@ -278,6 +281,35 @@ Variants {
                         scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
                         scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
                         wallpaperScale: bgRoot.effectiveWallpaperScale
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.media.enable
+                    sourceComponent: MediaWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
+                        scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
+                        wallpaperScale: bgRoot.effectiveWallpaperScale
+                    }
+                }
+
+                Repeater {
+                    model: FolderListModel {
+                        folder: "file://" + Config.options.background.widgets.images.directory
+                        nameFilters: ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.gif", "*.svg", "*.bmp"]
+                        showDirs: false
+                        sortField: FolderListModel.Name
+                    }
+                    delegate: ImageWidget {
+                        required property string filePath
+                        required property int index
+                        imagePath: filePath
+                        imageWidth: Config.options.background.widgets.images.defaultWidth
+                        imageHeight: Config.options.background.widgets.images.defaultHeight
+                        posX: 100 + (index % 5) * 220
+                        posY: 100 + Math.floor(index / 5) * 220
                     }
                 }
 

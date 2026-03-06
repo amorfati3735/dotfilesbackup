@@ -226,6 +226,7 @@ xorg-xkill
 xorg-xrandr
 xterm
 yay
+yewtube
 yt-dlp
 zathura
 zathura-pdf-mupdf
