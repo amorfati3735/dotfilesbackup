@@ -5,18 +5,19 @@ import Quickshell.Io
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.common.widgets
 
 Item {
     id: root
 
     required property string imagePath
-    required property real imageWidth
-    required property real imageHeight
+    required property real imageWidth // used as default base width
+    required property real imageHeight // fallback, overridden by aspect ratio
     property real posX: 0
     property real posY: 0
 
-    property string stateFile: Directories.config + "/quickshell/ii/data/image-widget-state.json"
+    property string stateFile: FileUtils.trimFileProtocol(Directories.config) + "/quickshell/ii/data/image-widget-state.json"
     property string stateKey: imagePath.split("/").pop()
     property var savedStates: ({})
     property bool stateLoaded: false
@@ -24,19 +25,39 @@ Item {
     property real maxSize: 800
     property real resizeStep: 20
 
+    // Natural aspect ratio from loaded image
+    property real naturalAspect: sizeProbe.implicitWidth > 0 && sizeProbe.implicitHeight > 0
+        ? sizeProbe.implicitWidth / sizeProbe.implicitHeight : 1.0
+    property real baseWidth: imageWidth
+
     x: posX
     y: posY
-    width: imageWidth
-    height: imageHeight
+    width: baseWidth
+    height: baseWidth / naturalAspect
+
+    // Hidden image to probe natural dimensions
+    Image {
+        id: sizeProbe
+        source: root.imagePath.startsWith("/") ? ("file://" + root.imagePath) : root.imagePath
+        visible: false
+        asynchronous: true
+        onStatusChanged: {
+            if (status === Image.Ready && !root.stateLoaded) {
+                // Image loaded, aspect ratio is now known — apply saved or default size
+                loadStateProc.load();
+            }
+        }
+    }
 
     Component.onCompleted: {
-        loadStateProc.running = true;
+        if (sizeProbe.status === Image.Ready) {
+            loadStateProc.load();
+        }
     }
 
     // Load saved state from JSON file
     Process {
         id: loadStateProc
-        command: ["bash", "-c", `cat '${root.stateFile}' 2>/dev/null || echo '{}'`]
         stdout: StdioCollector {
             id: loadCollector
             onStreamFinished: {
@@ -46,14 +67,14 @@ Item {
                     if (saved) {
                         root.x = saved.x ?? root.posX;
                         root.y = saved.y ?? root.posY;
-                        root.width = saved.width ?? root.imageWidth;
-                        root.height = saved.height ?? root.imageHeight;
+                        root.baseWidth = saved.baseWidth ?? root.imageWidth;
                     }
-                } catch (e) {
-                    // Invalid JSON, use defaults
-                }
+                } catch (e) {}
                 root.stateLoaded = true;
             }
+        }
+        function load() {
+            exec(["bash", "-c", `cat '${root.stateFile}' 2>/dev/null || echo '{}'`]);
         }
     }
 
@@ -61,12 +82,11 @@ Item {
     Timer {
         id: saveDebounce
         interval: 500
-        onTriggered: readBeforeSaveProc.running = true;
+        onTriggered: readBeforeSaveProc.load();
     }
 
     Process {
         id: readBeforeSaveProc
-        command: ["bash", "-c", `cat '${root.stateFile}' 2>/dev/null || echo '{}'`]
         stdout: StdioCollector {
             id: mergeCollector
             onStreamFinished: {
@@ -75,30 +95,29 @@ Item {
                     existing[root.stateKey] = {
                         x: root.x,
                         y: root.y,
-                        width: root.width,
-                        height: root.height,
+                        baseWidth: root.baseWidth,
                     };
-                    writeStateProc.stateJson = JSON.stringify(existing);
-                    writeStateProc.running = true;
+                    writeStateProc.save(JSON.stringify(existing));
                 } catch (e) {}
             }
+        }
+        function load() {
+            exec(["bash", "-c", `cat '${root.stateFile}' 2>/dev/null || echo '{}'`]);
         }
     }
 
     Process {
         id: writeStateProc
-        property string stateJson: "{}"
-        command: ["bash", "-c", `echo '${stateJson}' > '${root.stateFile}'`]
+        function save(json) {
+            exec(["bash", "-c", "printf '%s' \"$1\" > \"$2\"", "_", json, root.stateFile]);
+        }
     }
 
     function saveState() {
         saveDebounce.restart();
     }
 
-    Behavior on width {
-        animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
-    }
-    Behavior on height {
+    Behavior on baseWidth {
         animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
     }
 
@@ -113,11 +132,7 @@ Item {
 
         onWheel: (wheel) => {
             const delta = wheel.angleDelta.y > 0 ? root.resizeStep : -root.resizeStep;
-            const aspect = root.width / root.height;
-            const newW = Math.max(root.minSize, Math.min(root.maxSize, root.width + delta));
-            const newH = Math.max(root.minSize, Math.min(root.maxSize, newW / aspect));
-            root.width = newW;
-            root.height = newH;
+            root.baseWidth = Math.max(root.minSize, Math.min(root.maxSize, root.baseWidth + delta));
             root.saveState();
         }
     }
@@ -143,7 +158,7 @@ Item {
 
         Image {
             anchors.fill: parent
-            source: root.imagePath.startsWith("/") ? ("file://" + root.imagePath) : root.imagePath
+            source: sizeProbe.source
             fillMode: Image.PreserveAspectCrop
             antialiasing: true
             asynchronous: true
