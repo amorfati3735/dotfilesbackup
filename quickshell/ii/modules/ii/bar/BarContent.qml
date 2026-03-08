@@ -131,8 +131,12 @@ Item { // Bar content region
                 Layout.fillWidth: root.useShortenedForm === 2
             }
 
+            FocusIndicator {
+                id: focusIndicator
+            }
+
             Media {
-                visible: root.useShortenedForm < 2
+                visible: root.useShortenedForm < 2 && !focusIndicator.focusActive
                 Layout.fillWidth: true
             }
         }
@@ -342,12 +346,16 @@ Item { // Bar content region
                 Layout.fillHeight: true
             }
 
-            // Weather
+            // Tetris dots + Weather
             Loader {
                 Layout.leftMargin: 4
                 active: Config.options.bar.weather.enable
 
                 sourceComponent: BarGroup {
+                    TetrisDots {
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.rightMargin: 4
+                    }
                     WeatherBar {}
                 }
             }

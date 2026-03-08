@@ -414,7 +414,7 @@ ApplicationWindow {
                         RippleButtonWithIcon {
                             materialIcon: "keyboard_alt"
                             onClicked: {
-                                Quickshell.execDetached(["qs", "-p", Quickshell.shellPath(""), "ipc", "call", "cheatsheet", "toggle"]);
+                                Quickshell.execDetached(["qs", "-n", "-p", Quickshell.shellPath(""), "ipc", "call", "cheatsheet", "toggle"]);
                             }
                             mainContentComponent: Component {
                                 RowLayout {

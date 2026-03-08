@@ -39,11 +39,12 @@ LazyLoader {
             item: popupBg
         }
 
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
         onVisibleChanged: {
             if (visible) {
                 GlobalFocusGrab.addDismissable(panelWindow);
+                newNoteInput.forceActiveFocus();
             } else {
                 GlobalFocusGrab.removeDismissable(panelWindow);
             }
@@ -78,11 +79,7 @@ LazyLoader {
                 onActivated: GlobalStates.stickyNotesOpen = false
             }
 
-            onVisibleChanged: {
-                if (visible) {
-                    newNoteInput.forceActiveFocus()
-                }
-            }
+
 
             ColumnLayout {
                 id: popupContent
