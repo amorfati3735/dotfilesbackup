@@ -139,6 +139,18 @@ AbstractBackgroundWidget {
             }
         }
 
+        Process {
+            id: spotifyLauncher
+            command: ["hyprctl", "dispatch", "exec", "spotify"]
+        }
+
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: {
+                spotifyLauncher.running = true;
+            }
+        }
+
         Image {
             id: blurredArt
             anchors.fill: parent

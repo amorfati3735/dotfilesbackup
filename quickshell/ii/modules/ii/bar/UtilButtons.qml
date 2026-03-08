@@ -1,6 +1,7 @@
 import qs
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.services
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -19,6 +20,27 @@ Item {
 
         spacing: 4
         anchors.centerIn: parent
+
+        // Sticky Notes
+        Item {
+            Layout.alignment: Qt.AlignVCenter
+            implicitWidth: stickyNotesButton.implicitWidth
+            implicitHeight: stickyNotesButton.implicitHeight
+
+            CircleUtilButton {
+                id: stickyNotesButton
+                anchors.fill: parent
+                onClicked: GlobalStates.stickyNotesOpen = !GlobalStates.stickyNotesOpen
+
+                MaterialSymbol {
+                    horizontalAlignment: Qt.AlignHCenter
+                    fill: GlobalStates.stickyNotesOpen ? 1 : 0
+                    text: "sticky_note_2"
+                    iconSize: Appearance.font.pixelSize.large
+                    color: Appearance.colors.colOnLayer2
+                }
+            }
+        }
 
         Loader {
             active: Config.options.bar.utilButtons.showScreenSnip

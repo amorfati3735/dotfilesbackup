@@ -31,6 +31,7 @@ manga-tui
 obsidian-bin
 pear-desktop-bin
 pokemon-colorscripts-git
+qdirstat-bin
 qt5ct-kde
 qt6ct-kde
 rofi-power-menu

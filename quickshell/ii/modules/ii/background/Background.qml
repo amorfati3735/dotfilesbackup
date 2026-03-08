@@ -20,6 +20,8 @@ import qs.modules.ii.background.widgets.clock
 import qs.modules.ii.background.widgets.media
 import qs.modules.ii.background.widgets.weather
 import qs.modules.ii.background.widgets.images
+import qs.modules.ii.background.widgets.todo
+import qs.modules.ii.background.widgets.focus
 
 Variants {
     id: root
@@ -313,6 +315,18 @@ Variants {
                     }
                 }
 
+                Repeater {
+                    model: StickyNotes.pinnedNotes
+                    delegate: StickyNoteWidget {
+                        required property var modelData
+                        required property int index
+                        noteData: modelData
+                        noteIndex: index
+                        targetX: modelData.x !== undefined ? modelData.x : 60
+                        targetY: modelData.y !== undefined ? modelData.y : (200 + index * 80)
+                    }
+                }
+
                 FadeLoader {
                     shown: Config.options.background.widgets.clock.enable
                     sourceComponent: ClockWidget {
@@ -322,6 +336,28 @@ Variants {
                         scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
                         wallpaperScale: bgRoot.effectiveWallpaperScale
                         wallpaperSafetyTriggered: bgRoot.wallpaperSafetyTriggered
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.todo.enable
+                    sourceComponent: TodoWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
+                        scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
+                        wallpaperScale: bgRoot.effectiveWallpaperScale
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.focus.enable
+                    sourceComponent: FocusWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
+                        scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
+                        wallpaperScale: bgRoot.effectiveWallpaperScale
                     }
                 }
             }

@@ -220,6 +220,37 @@ Singleton {
                         property string directory: "/home/pratik/Pictures/widgets"
                         property real defaultWidth: 200
                         property real defaultHeight: 200
+                        property real defaultOpacity: 1.0
+                        property real defaultRotation: 0
+                        property real defaultBorderWidth: 0
+                        property string defaultBorderColor: "#ffffff"
+                        property real defaultCornerRadius: -1 // -1 = use Appearance.rounding.small
+                        property string defaultFitMode: "cover" // "cover", "fit", "stretch"
+                        property bool defaultShadow: true
+                    }
+                    property JsonObject systemmonitor: JsonObject {
+                        property bool enable: true
+                        property string placementStrategy: "free"
+                        property real x: 100
+                        property real y: 600
+                    }
+                    property JsonObject todo: JsonObject {
+                        property bool enable: true
+                        property string placementStrategy: "free"
+                        property real x: 500
+                        property real y: 100
+                    }
+                    property JsonObject focus: JsonObject {
+                        property bool enable: true
+                        property string placementStrategy: "free"
+                        property real x: 200
+                        property real y: 200
+                        property string style: "ember_dark"
+                        property list<var> presets: [
+                            { "task": "Study Session", "mins": 25 },
+                            { "task": "Coding", "mins": 45 },
+                            { "task": "Quick Break", "mins": 5 }
+                        ]
                     }
                 }
                 property string wallpaperPath: ""

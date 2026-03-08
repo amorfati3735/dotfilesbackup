@@ -129,6 +129,7 @@ modemmanager
 mtools
 nano
 nano-syntax-highlighting
+ncdu
 ncspot
 neovim
 netctl
@@ -171,6 +172,7 @@ python-packaging
 python-pip
 python-virtualenv
 qbittorrent
+qdirstat-bin
 qt5ct-kde
 qt6ct-kde
 rclone
