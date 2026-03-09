@@ -58,10 +58,6 @@ LazyLoader {
             }
         }
 
-        Keys.onEscapePressed: {
-            GlobalStates.quickCaptureOpen = false;
-        }
-
         Process {
             id: jotLogger
             property string noteText: ""
