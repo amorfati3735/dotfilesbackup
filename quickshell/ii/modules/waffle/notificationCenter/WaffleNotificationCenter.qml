@@ -41,7 +41,7 @@ Scope {
             HyprlandFocusGrab {
                 id: focusGrab
                 active: true
-                windows: [panelWindow]
+                windows: panelLoader.active ? [panelWindow] : []
                 onCleared: content.close();
             }
 

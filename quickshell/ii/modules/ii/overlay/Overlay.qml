@@ -46,7 +46,7 @@ Scope {
 
             HyprlandFocusGrab {
                 id: grab
-                windows: [overlayWindow]
+                windows: overlayLoader.active ? [overlayWindow] : []
                 active: false
                 onCleared: () => {
                     if (!active) GlobalStates.overlayOpen = false;

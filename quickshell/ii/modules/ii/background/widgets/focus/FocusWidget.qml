@@ -192,7 +192,7 @@ AbstractBackgroundWidget {
                         return String(m).padStart(2, '0') + ":" + String(s).padStart(2, '0');
                     }
                     color: root.flashState ? Appearance.colors.colError : root.mainTextCol
-                    font.family: Appearance.font.numbers
+                    font.family: Appearance.font.family.numbers
                     font.pixelSize: 42
                     font.weight: Font.Bold
                 }

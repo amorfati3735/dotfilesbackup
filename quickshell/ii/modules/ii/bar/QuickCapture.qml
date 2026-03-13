@@ -51,6 +51,10 @@ LazyLoader {
             }
         }
 
+        Component.onDestruction: {
+            GlobalFocusGrab.removeDismissable(captureWindow);
+        }
+
         Connections {
             target: GlobalFocusGrab
             function onDismissed() {
@@ -64,7 +68,10 @@ LazyLoader {
             command: ["bash", "-c",
                 "FILE='/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala/quick-jot.md'; " +
                 "STAMP=$(date +'%a %b %d, %I:%M %p'); " +
-                "echo \"- **${STAMP}** — $1\" >> \"$FILE\"",
+                "TEMP=$(mktemp); " +
+                "echo \"- **${STAMP}** — $1\" > \"$TEMP\"; " +
+                "[ -f \"$FILE\" ] && cat \"$FILE\" >> \"$TEMP\"; " +
+                "mv \"$TEMP\" \"$FILE\";",
                 "bash", jotLogger.noteText
             ]
         }
@@ -85,24 +92,6 @@ LazyLoader {
             color: "#E8E4DF"
             border.width: 2.5
             border.color: "#8B7355"
-
-            // Subtle noise texture overlay
-            Canvas {
-                anchors.fill: parent
-                onPaint: {
-                    var ctx = getContext("2d");
-                    var w = width;
-                    var h = height;
-                    ctx.clearRect(0, 0, w, h);
-                    for (var i = 0; i < w * h * 0.03; i++) {
-                        var x = Math.random() * w;
-                        var y = Math.random() * h;
-                        var a = Math.random() * 0.06;
-                        ctx.fillStyle = "rgba(0,0,0," + a + ")";
-                        ctx.fillRect(x, y, 1, 1);
-                    }
-                }
-            }
 
             Shortcut {
                 sequence: "Escape"
@@ -207,7 +196,25 @@ LazyLoader {
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 2
-                    visible: StickyNotes.notes.length > 0
+                    visible: recentRepeater.count > 0
+
+                    ListModel { id: recentModel }
+
+                    function syncRecent() {
+                        recentModel.clear();
+                        let notes = StickyNotes.notes;
+                        let start = Math.max(0, notes.length - 3);
+                        for (let i = notes.length - 1; i >= start; i--) {
+                            recentModel.append({ content: notes[i].content || "" });
+                        }
+                    }
+
+                    Component.onCompleted: syncRecent()
+
+                    Connections {
+                        target: StickyNotes
+                        function onNotesChanged() { syncRecent(); }
+                    }
 
                     Text {
                         text: "最近"
@@ -218,15 +225,13 @@ LazyLoader {
                     }
 
                     Repeater {
-                        model: {
-                            let notes = StickyNotes.notes;
-                            return notes.slice(-3).reverse();
-                        }
+                        id: recentRepeater
+                        model: recentModel
 
                         Text {
-                            required property var modelData
+                            required property string content
                             Layout.fillWidth: true
-                            text: "— " + modelData.content
+                            text: "— " + content
                             color: "#A0A09E"
                             font.pixelSize: 12
                             font.family: Appearance.font.family.main

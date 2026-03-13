@@ -315,15 +315,46 @@ Variants {
                     }
                 }
 
+                Item {
+                    id: pinnedModelContainer
+                    ListModel { id: pinnedModel }
+
+                    function syncPinnedModel() {
+                        pinnedModel.clear();
+                        for (let i = 0; i < StickyNotes.pinnedNotes.length; i++) {
+                            let n = StickyNotes.pinnedNotes[i];
+                            pinnedModel.append({
+                                content: n.content || "",
+                                pinned: true,
+                                timestamp: n.timestamp || 0,
+                                noteX: n.x !== undefined ? n.x : 60,
+                                noteY: n.y !== undefined ? n.y : (200 + i * 80),
+                                noteIndex: i
+                            });
+                        }
+                    }
+
+                    Component.onCompleted: syncPinnedModel()
+
+                    Connections {
+                        target: StickyNotes
+                        function onPinnedNotesChanged() { pinnedModelContainer.syncPinnedModel(); }
+                    }
+                }
+
                 Repeater {
-                    model: StickyNotes.pinnedNotes
+                    id: pinnedRepeater
+                    model: pinnedModel
+
                     delegate: StickyNoteWidget {
-                        required property var modelData
-                        required property int index
-                        noteData: modelData
-                        noteIndex: index
-                        targetX: modelData.x !== undefined ? modelData.x : 60
-                        targetY: modelData.y !== undefined ? modelData.y : (200 + index * 80)
+                        required property int noteIndex
+                        required property string content
+                        required property real noteX
+                        required property real noteY
+                        required property var timestamp
+                        noteData: ({ content: content, timestamp: timestamp, pinned: true })
+                        targetX: noteX
+                        targetY: noteY
                     }
                 }
 

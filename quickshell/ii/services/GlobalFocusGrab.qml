@@ -62,8 +62,15 @@ Singleton {
 
     HyprlandFocusGrab {
         id: grab
-        windows: root.dismissable.every(w => !w?.focusable) || root.dismissable.some(w => hasActive(w?.contentItem)) ? [...root.dismissable, ...root.persistent] : [...root.dismissable]
-        active: root.dismissable.length > 0
+        windows: {
+            let isAlive = w => w != null && String(w).indexOf("null") === -1;
+            let validDismissable = root.dismissable.filter(isAlive);
+            let validPersistent = root.persistent.filter(isAlive);
+            if (validDismissable.length === 0) return [];
+            let useBoth = validDismissable.every(w => !w?.focusable) || validDismissable.some(w => hasActive(w?.contentItem));
+            return useBoth ? [...validDismissable, ...validPersistent] : [...validDismissable];
+        }
+        active: root.dismissable.filter(w => w != null).length > 0
         onCleared: () => {
             root.dismiss();
         }

@@ -60,9 +60,11 @@ ffmpegthumbs
 figlet
 firefox
 fsearch
+gallery-dl
 git
 github-cli
 glances
+gnome-clocks
 gnome-disk-utility
 google-chrome
 grub
@@ -87,7 +89,6 @@ illogical-impulse-kde
 illogical-impulse-microtex-git
 illogical-impulse-portal
 illogical-impulse-python
-illogical-impulse-quickshell-git
 illogical-impulse-screencapture
 illogical-impulse-toolkit
 illogical-impulse-widgets
@@ -98,6 +99,7 @@ inxi
 iptables-nft
 iwd
 jfsutils
+kate
 kdegraphics-thumbnailers
 keyd
 kimageformats
@@ -147,8 +149,9 @@ ntfs-3g
 ntp
 nvidia-open
 nvidia-prime
-obsidian-bin
+obsidian
 okular
+opencode
 openssh
 os-prober
 pacman-contrib
@@ -175,6 +178,7 @@ qbittorrent
 qdirstat-bin
 qt5ct-kde
 qt6ct-kde
+quickshell-git
 rclone
 rebuild-detector
 reflector

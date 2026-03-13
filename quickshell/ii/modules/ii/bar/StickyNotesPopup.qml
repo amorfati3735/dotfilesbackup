@@ -50,11 +50,29 @@ LazyLoader {
             }
         }
 
+        Component.onDestruction: {
+            GlobalFocusGrab.removeDismissable(panelWindow);
+        }
+
         Connections {
             target: GlobalFocusGrab
             function onDismissed() {
                 GlobalStates.stickyNotesOpen = false;
             }
+        }
+
+        Process {
+            id: jotLogger
+            property string noteText: ""
+            command: ["bash", "-c",
+                "FILE='/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala/quick-jot.md'; " +
+                "STAMP=$(date +'%a %b %d, %I:%M %p'); " +
+                "TEMP=$(mktemp); " +
+                "echo \"- **${STAMP}** — $1\" > \"$TEMP\"; " +
+                "[ -f \"$FILE\" ] && cat \"$FILE\" >> \"$TEMP\"; " +
+                "mv \"$TEMP\" \"$FILE\";",
+                "bash", jotLogger.noteText
+            ]
         }
 
         Keys.onEscapePressed: {
@@ -106,8 +124,8 @@ LazyLoader {
                         Layout.fillWidth: true
                     }
                     StyledText {
-                        visible: StickyNotes.notes.length > 0
-                        text: StickyNotes.notes.length
+                        visible: notesList.count > 0
+                        text: notesList.count
                         font.pixelSize: Appearance.font.pixelSize.small
                         color: Appearance.colors.colSubtext
                         Layout.rightMargin: 10
@@ -162,6 +180,8 @@ LazyLoader {
                             Keys.onReturnPressed: {
                                 if (newNoteInput.text.trim() !== "") {
                                     StickyNotes.addNote(newNoteInput.text);
+                                    jotLogger.noteText = newNoteInput.text.trim();
+                                    jotLogger.running = true;
                                     newNoteInput.text = "";
                                 }
                             }
@@ -175,6 +195,8 @@ LazyLoader {
                         onClicked: {
                             if (newNoteInput.text.trim() !== "") {
                                 StickyNotes.addNote(newNoteInput.text);
+                                jotLogger.noteText = newNoteInput.text.trim();
+                                jotLogger.running = true;
                                 newNoteInput.text = "";
                             }
                         }
@@ -501,28 +523,50 @@ LazyLoader {
                     visible: notesList.count > 0
                 }
 
+                Item {
+                    id: notesModelContainer
+                    ListModel { id: notesModel }
+
+                    function syncNotesModel() {
+                        notesModel.clear();
+                        for (let i = StickyNotes.notes.length - 1; i >= 0; i--) {
+                            let n = StickyNotes.notes[i];
+                            notesModel.append({
+                                content: n.content || "",
+                                pinned: !!n.pinned,
+                                noteIndex: i
+                            });
+                        }
+                    }
+
+                    Component.onCompleted: syncNotesModel()
+
+                    Connections {
+                        target: StickyNotes
+                        function onNotesChanged() { notesModelContainer.syncNotesModel(); }
+                    }
+                }
+
                 // Notes list
                 ListView {
                     id: notesList
                     Layout.fillWidth: true
                     implicitHeight: Math.min(contentHeight, 300)
-                    model: StickyNotes.notes
+                    model: notesModel
                     spacing: 6
                     clip: true
                     interactive: contentHeight > 300
 
                     delegate: Rectangle {
                         id: noteDelegate
-                        required property var modelData
                         required property int index
+                        required property string content
+                        required property bool pinned
+                        required property int noteIndex
                         width: notesList.width
                         implicitHeight: noteLayout.implicitHeight + 16
                         radius: Appearance.rounding.small
                         color: noteHover.hovered ? Appearance.colors.colSecondaryContainerHover : Appearance.colors.colSecondaryContainer
-
-                        Behavior on color {
-                            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
-                        }
 
                         HoverHandler {
                             id: noteHover
@@ -546,7 +590,7 @@ LazyLoader {
                             StyledText {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
-                                text: noteDelegate.modelData.content
+                                text: noteDelegate.content
                                 wrapMode: Text.Wrap
                                 color: Appearance.colors.colOnSecondaryContainer
                                 font.pixelSize: Appearance.font.pixelSize.small
@@ -557,21 +601,17 @@ LazyLoader {
                                 implicitWidth: 22
                                 implicitHeight: 22
                                 buttonRadius: Appearance.rounding.full
-                                opacity: (noteHover.hovered || noteDelegate.modelData.pinned) ? 1 : 0
+                                opacity: (noteHover.hovered || noteDelegate.pinned) ? 1 : 0
                                 visible: opacity > 0
 
-                                Behavior on opacity {
-                                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-                                }
-
-                                onClicked: StickyNotes.togglePin(noteDelegate.index)
+                                onClicked: StickyNotes.togglePin(noteDelegate.noteIndex)
 
                                 contentItem: MaterialSymbol {
                                     anchors.centerIn: parent
                                     text: "push_pin"
-                                    fill: noteDelegate.modelData.pinned ? 1 : 0
+                                    fill: noteDelegate.pinned ? 1 : 0
                                     iconSize: Appearance.font.pixelSize.normal
-                                    color: noteDelegate.modelData.pinned ? Appearance.colors.colPrimary : Appearance.colors.colSubtext
+                                    color: noteDelegate.pinned ? Appearance.colors.colPrimary : Appearance.colors.colSubtext
                                 }
                             }
 
@@ -582,11 +622,7 @@ LazyLoader {
                                 opacity: noteHover.hovered ? 1 : 0
                                 visible: opacity > 0
 
-                                Behavior on opacity {
-                                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-                                }
-
-                                onClicked: StickyNotes.removeNote(noteDelegate.index)
+                                onClicked: StickyNotes.removeNote(noteDelegate.noteIndex)
 
                                 contentItem: MaterialSymbol {
                                     anchors.centerIn: parent

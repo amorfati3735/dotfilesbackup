@@ -344,12 +344,12 @@ Singleton {
 
         /// Math result, command, web search ///
         if (Config.options.search.prefix.showDefaultActionsWithoutPrefix) {
+            if (!startsWithWebSearchPrefix)
+                result.push(webSearchResultObject);
             if (!startsWithShellCommandPrefix)
                 result.push(commandResultObject);
             if (!startsWithNumber && !startsWithMathPrefix)
                 result.push(mathResultObject);
-            if (!startsWithWebSearchPrefix)
-                result.push(webSearchResultObject);
         }
 
         return result;

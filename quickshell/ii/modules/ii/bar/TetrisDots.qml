@@ -103,21 +103,6 @@ MouseArea {
             }
         }
 
-        Connections {
-            target: root
-            function onEnteredChanged() {
-                if (root.hovered && !root.playing) {
-                    catView.petCount++;
-                    petResetTimer.restart();
-                    if (catView.petCount >= 3) {
-                        catView.expression = "pet";
-                        catView.petTimer.restart();
-                        catView.petCount = 0;
-                    }
-                }
-            }
-        }
-
         // Sleepy after idle for a while
         Timer {
             id: sleepyTimer
@@ -135,6 +120,16 @@ MouseArea {
                 if (root.hovered) {
                     sleepyTimer.restart();
                     if (catView.expression === "sleepy") catView.expression = "happy";
+                    
+                    if (!root.playing) {
+                        catView.petCount++;
+                        petResetTimer.restart();
+                        if (catView.petCount >= 3) {
+                            catView.expression = "pet";
+                            catView.petTimer.restart();
+                            catView.petCount = 0;
+                        }
+                    }
                 }
             }
         }

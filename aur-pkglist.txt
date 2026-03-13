@@ -9,6 +9,7 @@ caelestia-shell
 cliwt
 envycontrol
 fsearch
+gallery-dl
 google-chrome
 grub-customizer
 hyprviz-bin
@@ -22,18 +23,17 @@ illogical-impulse-kde
 illogical-impulse-microtex-git
 illogical-impulse-portal
 illogical-impulse-python
-illogical-impulse-quickshell-git
 illogical-impulse-screencapture
 illogical-impulse-toolkit
 illogical-impulse-widgets
 lmstudio-bin
 manga-tui
-obsidian-bin
 pear-desktop-bin
 pokemon-colorscripts-git
 qdirstat-bin
 qt5ct-kde
 qt6ct-kde
+quickshell-git
 rofi-power-menu
 spotify
 tplay-git

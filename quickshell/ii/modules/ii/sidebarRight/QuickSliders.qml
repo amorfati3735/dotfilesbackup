@@ -59,7 +59,17 @@ Rectangle {
                 materialSymbol: "volume_up"
                 value: Audio.sink.audio.volume
                 onMoved: {
-                    Audio.sink.audio.volume = value
+                    Audio.sink.audio.volume = value;
+                }
+
+                property bool _wasPressed: false
+                onPressedChanged: {
+                    if (pressed) {
+                        _wasPressed = true;
+                    } else if (_wasPressed) {
+                        Quickshell.execDetached(["pw-play", "/usr/share/sounds/freedesktop/stereo/audio-volume-change.oga"]);
+                        _wasPressed = false;
+                    }
                 }
             }
         }

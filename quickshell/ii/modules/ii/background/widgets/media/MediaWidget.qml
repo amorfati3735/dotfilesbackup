@@ -53,7 +53,7 @@ AbstractBackgroundWidget {
 
     Process {
         id: coverArtDownloader
-        property string targetFile: root.artUrl
+        property string targetFile: root.artUrl ?? ""
         property string artFilePath: root.artFilePath
         command: ["bash", "-c", `[ -f ${artFilePath} ] || curl -sSL '${targetFile}' -o '${artFilePath}'`]
         onExited: (exitCode, exitStatus) => {
@@ -177,7 +177,7 @@ AbstractBackgroundWidget {
         WaveVisualizer {
             id: visualizerCanvas
             anchors.fill: parent
-            live: root.activePlayer?.isPlaying
+            live: root.activePlayer?.isPlaying ?? false
             points: root.visualizerPoints
             maxVisualizerValue: root.maxVisualizerValue
             smoothing: root.visualizerSmoothing
@@ -244,7 +244,7 @@ AbstractBackgroundWidget {
                     font.pixelSize: Appearance.font.pixelSize.smaller
                     color: blendedColors.colSubtext
                     elide: Text.ElideRight
-                    text: root.activePlayer?.trackArtist
+                    text: root.activePlayer?.trackArtist ?? ""
                     animateChange: true
                     animationDistanceX: 6
                     animationDistanceY: 0
@@ -310,7 +310,7 @@ AbstractBackgroundWidget {
                                 }
                                 active: !(root.activePlayer?.canSeek ?? false)
                                 sourceComponent: StyledProgressBar {
-                                    wavy: root.activePlayer?.isPlaying
+                                    wavy: root.activePlayer?.isPlaying ?? false
                                     highlightColor: blendedColors.colPrimary
                                     trackColor: blendedColors.colSecondaryContainer
                                     value: root.activePlayer?.position / root.activePlayer?.length

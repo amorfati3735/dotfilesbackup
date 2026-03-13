@@ -13,6 +13,7 @@ AbstractWidget {
     required property int noteIndex
     property real targetX: 0
     property real targetY: 0
+    property bool _initialized: false
     x: targetX
     y: targetY
 
@@ -21,23 +22,12 @@ AbstractWidget {
 
     draggable: true
 
-    Timer {
-        id: posSaveTimer
-        interval: 1000
-        onTriggered: {
-            if (StickyNotes.updateNotePosition) {
-                StickyNotes.updateNotePosition(root.noteData.timestamp, root.targetX, root.targetY)
-            }
-        }
-    }
-
-    onTargetXChanged: posSaveTimer.restart()
-    onTargetYChanged: posSaveTimer.restart()
+    Component.onCompleted: _initialized = true
 
     onReleased: {
         root.targetX = root.x;
         root.targetY = root.y;
-        if (StickyNotes.updateNotePosition) {
+        if (_initialized) {
             StickyNotes.updateNotePosition(root.noteData.timestamp, root.targetX, root.targetY)
         }
     }
@@ -54,24 +44,6 @@ AbstractWidget {
         color: Appearance.colors.colSecondaryContainer
         border.width: 2
         border.color: Appearance.colors.colOutlineVariant
-
-        // Subtle noise texture
-        Canvas {
-            anchors.fill: parent
-            onPaint: {
-                var ctx = getContext("2d");
-                var w = width;
-                var h = height;
-                ctx.clearRect(0, 0, w, h);
-                for (var i = 0; i < w * h * 0.03; i++) {
-                    var x = Math.random() * w;
-                    var y = Math.random() * h;
-                    var a = Math.random() * 0.06;
-                    ctx.fillStyle = "rgba(0,0,0," + a + ")";
-                    ctx.fillRect(x, y, 1, 1);
-                }
-            }
-        }
 
         ColumnLayout {
             id: contentLayout

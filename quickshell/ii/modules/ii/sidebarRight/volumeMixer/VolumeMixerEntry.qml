@@ -56,8 +56,19 @@ Item {
             StyledSlider {
                 id: slider
                 value: root.node?.audio.volume ?? 0
-                onMoved: root.node.audio.volume = value
-                configuration: StyledSlider.Configuration.S
+                onMoved: {
+                    root.node.audio.volume = value;
+                }
+
+                property bool _wasPressed: false
+                onPressedChanged: {
+                    if (pressed) {
+                        _wasPressed = true;
+                    } else if (_wasPressed) {
+                        Quickshell.execDetached(["pw-play", "/usr/share/sounds/freedesktop/stereo/audio-volume-change.oga"]);
+                        _wasPressed = false;
+                    }
+                }
             }
         }
     }
