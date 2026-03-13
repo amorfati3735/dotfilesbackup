@@ -23,23 +23,100 @@ import qs.modules.ii.verticalBar
 import qs.modules.ii.wallpaperSelector
 
 Scope {
-    PanelLoader { extraCondition: !Config.options.bar.vertical; component: Bar {} }
-    PanelLoader { component: Background {} }
-    PanelLoader { component: Cheatsheet {} }
-    PanelLoader { extraCondition: Config.options.dock.enable; component: Dock {} }
-    PanelLoader { component: Lock {} }
-    PanelLoader { component: MediaControls {} }
-    PanelLoader { component: NotificationPopup {} }
-    PanelLoader { component: OnScreenDisplay {} }
-    PanelLoader { component: OnScreenKeyboard {} }
-    PanelLoader { component: Overlay {} }
-    PanelLoader { component: Overview {} }
-    PanelLoader { component: Polkit {} }
-    PanelLoader { component: RegionSelector {} }
-    PanelLoader { component: ScreenCorners {} }
-    PanelLoader { component: SessionScreen {} }
-    PanelLoader { component: SidebarLeft {} }
-    PanelLoader { component: SidebarRight {} }
-    PanelLoader { extraCondition: Config.options.bar.vertical; component: VerticalBar {} }
-    PanelLoader { component: WallpaperSelector {} }
+    id: scope
+    property bool delayed: false
+    Timer {
+        interval: 350
+        running: true
+        repeat: false
+        onTriggered: scope.delayed = true
+    }
+
+    PanelLoader {
+        extraCondition: !Config.options.bar.vertical
+        component: Bar {}
+    }
+
+    PanelLoader {
+        component: Background {}
+    }
+
+    PanelLoader {
+        component: Cheatsheet {}
+        extraCondition: scope.delayed
+    }
+
+    PanelLoader {
+        extraCondition: Config.options.dock.enable && scope.delayed
+        component: Dock {}
+    }
+
+    PanelLoader {
+        component: Lock {}
+    }
+
+    PanelLoader {
+        component: MediaControls {}
+        extraCondition: scope.delayed
+    }
+
+    PanelLoader {
+        component: NotificationPopup {}
+    }
+
+    PanelLoader {
+        component: OnScreenDisplay {}
+    }
+
+    PanelLoader {
+        component: OnScreenKeyboard {}
+        extraCondition: scope.delayed
+    }
+
+    PanelLoader {
+        component: Overlay {}
+        extraCondition: scope.delayed
+    }
+
+    PanelLoader {
+        component: Overview {}
+        extraCondition: scope.delayed
+    }
+
+    PanelLoader {
+        component: Polkit {}
+    }
+
+    PanelLoader {
+        component: RegionSelector {}
+        extraCondition: scope.delayed
+    }
+
+    PanelLoader {
+        component: ScreenCorners {}
+    }
+
+    PanelLoader {
+        component: SessionScreen {}
+    }
+
+    PanelLoader {
+        component: SidebarLeft {}
+        extraCondition: scope.delayed
+    }
+
+    PanelLoader {
+        component: SidebarRight {}
+        extraCondition: scope.delayed
+    }
+
+    PanelLoader {
+        extraCondition: Config.options.bar.vertical
+        component: VerticalBar {}
+    }
+
+    PanelLoader {
+        component: WallpaperSelector {}
+        extraCondition: scope.delayed
+    }
 }

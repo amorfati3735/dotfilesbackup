@@ -20,7 +20,7 @@ Singleton {
     property bool isLoading: false
     property string translationKeepSuffix: "/*keep*/"
     property string translationsDir: Quickshell.shellPath("translations")
-    property string generatedTranslationsDir: Directories.shellConfig + "/translations"
+    property string generatedTranslationsDir: root.translationsDir
 
     property string languageCode: {
         var configLang = Config?.options.language.ui ?? "auto";

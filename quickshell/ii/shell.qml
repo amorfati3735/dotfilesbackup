@@ -27,9 +27,11 @@ ShellRoot {
         Hyprsunset.load()
         FirstRunExperience.load()
         ConflictKiller.load()
-        Cliphist.refresh()
-        Wallpapers.load()
-        Updates.load()
+        Qt.callLater(() => {
+            Cliphist.refresh()
+            Wallpapers.load()
+            Updates.load()
+        })
     }
 
 
