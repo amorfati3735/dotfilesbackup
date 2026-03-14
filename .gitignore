@@ -1,0 +1,5 @@
+# Secrets - fish_variables can contain exported env vars with API keys
+fish/fish_variables
+
+# dconf dump may contain sensitive app settings
+dconf-dump.ini
