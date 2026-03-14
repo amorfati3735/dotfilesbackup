@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup dotfiles to GitHub
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/dotfiles-backup.sh --auto

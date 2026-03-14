@@ -1,0 +1,8 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Backup Obsidian Vault
+Comment=Sync Obsidian vault to private GitHub repo
+Exec=/home/pratik/.config/hypr/custom/scripts/backup-obsidian.sh
+Icon=folder-sync
+Type=Application
+Terminal=false

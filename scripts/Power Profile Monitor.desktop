@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Power Profile Monitor
+Comment=Auto-switch refresh rate based on power profile
+Exec=/home/pratik/.config/hypr/custom/scripts/power-profile-monitor.sh
+Icon=utilities-energy-monitor
+Type=Application
+Terminal=false

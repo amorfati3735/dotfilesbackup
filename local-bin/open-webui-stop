@@ -1,0 +1,2 @@
+#!/bin/sh
+docker stop open-webui >/dev/null 2>&1

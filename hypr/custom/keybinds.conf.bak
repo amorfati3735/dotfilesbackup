@@ -1,0 +1,64 @@
+# See https://wiki.hyprland.org/Configuring/Binds/
+#!
+##! User
+bind = Ctrl+Super, Slash, exec, xdg-open ~/.config/illogical-impulse/config.json # Edit shell config
+bind = Ctrl+Super+Alt, Slash, exec, xdg-open ~/.config/hypr/custom/keybinds.conf # Edit extra keybinds
+
+
+
+# bind = Super, Return, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh "${TERMINAL}" "kitty -1" "foot" "alacritty" "wezterm" "konsole" "kgx" "uxterm" "xterm" # Terminal
+# bind = Super, T, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh  "${TERMINAL}" "kitty -1" "foot" "alacritty" "wezterm" "konsole" "kgx" "uxterm" "xterm" # [hidden] (terminal) (alt)
+# bind = Ctrl+Alt, T, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh "${TERMINAL}" "kitty -1" "foot" "alacritty" "wezterm" "konsole" "kgx" "uxterm" "xterm" # [hidden] (terminal) (for Ubuntu people)
+# bind = Super, E, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh "dolphin" "nautilus" "nemo" "thunar" "${TERMINAL}" "kitty -1 fish -c yazi" # File manager
+# bind = Super, W, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh "google-chrome-stable" "zen-browser" "firefox" "brave" "chromium" "microsoft-edge-stable" "opera" "librewolf" # Browser
+# bind = Super, C, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh "code" "codium" "cursor" "zed" "zedit" "zeditor" "kate" "gnome-text-editor" "emacs" "command -v nvim && kitty -1 nvim" "command -v micro && kitty -1 micro" # Code editor
+# bind = Ctrl+Super+Shift+Alt, W, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh "wps" "onlyoffice-desktopeditors" "libreoffice" # Office software
+# bind = Super, X, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh "kate" "gnome-text-editor" "emacs" # Text editor
+# bind = Ctrl+Super, V, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh "pavucontrol-qt" "pavucontrol" # Volume mixer
+# bind = Super, I, exec, XDG_CURRENT_DESKTOP=gnome ~/.config/hypr/hyprland/scripts/launch_first_available.sh "qs -p ~/.config/quickshell/$qsConfig/settings.qml" "systemsettings" "gnome-control-center" "better-control" # Settings app
+# bind = Ctrl+Shift, Escape, exec, ~/.config/hypr/hyprland/scripts/launch_first_available.sh "gnome-system-monitor" "plasma-systemmonitor --page-name Processes" "command -v btop && kitty -1 fish -c btop" # Task manager
+
+# Add stuff here
+# Use #! to add an extra column on the cheatsheet
+# Use ##! to add a section in that column
+# Add a comment after a bind to add a description, like above
+
+unbind = SUPER, C   # Remove default VS Code bind
+
+##! Browser Shortcuts
+bind = ALT, C, exec, xdg-open "https://calendar.google.com/calendar/u/2/r"                                   # Open Google Calendar
+bind = ALT, Q, exec, xdg-open "https://drive.google.com/drive/folders/1SBXoFGg_N8mLaUFk19SGC0jBHj1vj_SO"   # Open Google Drive folder
+bind = ALT, V, exec, xdg-open "https://vtop.vit.ac.in/vtop/login"                                            # Open VTOP
+bind = ALT, W, exec, xdg-open "https://web.whatsapp.com/"                                                    # Open WhatsApp Web
+bind = ALT, G, exec, xdg-open "https://mail.google.com/mail/u/1/#inbox"                                      # Open Gmail
+bind = ALT, 3, exec, xdg-open "https://aistudio.google.com"                                                  # Open Google AI Studio
+bind = ALT, 4, exec, xdg-open "https://monkeytype.com/"                                                      # Open Monkeytype
+
+binds = Alt_R, R, exec, xdg-open "https://www.youtube.com/playlist?list=PLdo5W4Nhv31bbKJzrsKfMpo_grxuLl8LU"  # YouTube playlist
+binds = Alt_R, K, exec, xdg-open "https://keep.google.com/u/1/"                                           # Open Google Keep
+binds = Alt_R, V, exec, xdg-open "https://vitvellore312.examly.io/"                                       # Open Examly
+binds = Alt_R, C, exec, xdg-open "https://calendar.google.com/calendar/u/2/r/tasks"                       # Open Google Tasks
+binds = Alt_R, P, exec, xdg-open "https://www.papers.codechefvit.com/"                                    # Papers
+
+bind = SUPER, C, exec, xdg-open "https://chatgpt.com/"                                                       # Open ChatGPT
+
+bind = ALT, TAB, workspace, previous
+
+##! Extra Shortcuts
+
+unbind = SUPER, W   # Remove default browser bind
+
+bind = ALT, X, exec, dolphin --new-window ~/Downloads                                                                                                    # Open Downloads
+bind = ALT, GRAVE, exec, dolphin --new-window "/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala"                                           # Open Obsidian folder
+bind = ALT, A, exec, xdg-open "/mnt/windows/Users/DELL/Downloads/Binder1.pdf"                                                                           # Open schedule PDF
+bind = ALT, S, exec, dolphin --new-window "/mnt/windows/Users/DELL/Pictures/Screenshots"                                                                # Open Screenshots folder
+binds = Alt_R, S, exec, dolphin --new-window "/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala/assets/ShareX/Screenshots"               # ShareX screenshots
+binds = Alt_R, L, exec, xdg-open "/mnt/windows/Users/DELL/Documents/Timeline.xlsx"                                                                   # Open Timeline spreadsheet
+
+bind = SUPER, Z, exec, zen-browser                                                                             # Launch Zen Browser
+binds = Alt_R, D, exec, obsidian                                                                           # Open Obsidian
+binds = Control_R, Alt_R, exec, kitty -e micro ~/.config/hypr/custom/keybinds.conf                            # Edit keybinds
+
+bind = ALT, Z, exec, kitty --directory ~/Documents/notes -e micro                                              # Micro in notes
+bind = ALT, 5, exec, code                                                                                      # VS Code
+bind = ALT, SPACE, exec, fsearch                                                                               # Open FSearch

@@ -1,0 +1,11 @@
+[Unit]
+Description=Hyprland Wayland Session
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/Hyprland
+Restart=no
+Environment=WLR_NO_HARDWARE_CURSORS=1
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,6 @@
+[Unit]
+Description=Periodic disk cleanup
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/disk-cleanup.sh

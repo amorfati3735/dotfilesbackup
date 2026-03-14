@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Start container only if not running
+if ! docker ps --format '{{.Names}}' | grep -q '^open-webui$'; then
+  docker start open-webui >/dev/null
+fi
+
+# Wait until web server is ready
+until curl -sf http://localhost:3000 >/dev/null; do
+  sleep 1
+done
+
+# Open browser
+xdg-open http://localhost:3000

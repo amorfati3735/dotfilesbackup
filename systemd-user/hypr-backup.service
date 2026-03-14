@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup Hyprland config to GitHub
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/hypr-backup.sh

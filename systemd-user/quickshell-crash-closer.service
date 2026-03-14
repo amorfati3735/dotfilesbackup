@@ -1,0 +1,11 @@
+[Unit]
+Description=Auto-close Quickshell crash dialogs
+After=graphical-session.target
+
+[Service]
+ExecStart=/home/pratik/.config/hypr/custom/scripts/quickshell-crash-closer.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

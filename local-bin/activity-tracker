@@ -1,0 +1,342 @@
+#!/bin/bash
+# activity-tracker — lightweight activity logger for Hyprland
+# Logs to Obsidian vault as daily markdown notes
+
+VAULT_DIR="/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala/logs"
+POLL_INTERVAL=15
+
+detect_hyprland() {
+    # already working? skip
+    if hyprctl activewindow -j 2>/dev/null | jq -e '.class' &>/dev/null; then
+        return 0
+    fi
+    # try each socket dir until hyprctl responds
+    local hypr_dir
+    for hypr_dir in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr" "/tmp/hypr"; do
+        if [[ -d "$hypr_dir" ]]; then
+            local sig
+            for sig in $(ls "$hypr_dir" 2>/dev/null); do
+                export HYPRLAND_INSTANCE_SIGNATURE="$sig"
+                if hyprctl activewindow -j 2>/dev/null | jq -e '.class' &>/dev/null; then
+                    return 0
+                fi
+            done
+        fi
+    done
+    unset HYPRLAND_INSTANCE_SIGNATURE
+    return 1
+}
+
+detect_hyprland
+
+# --- helpers ---
+
+get_log_date() {
+    local hour
+    hour=$(date +%-H)
+    if (( hour < 7 )); then
+        date -d "yesterday" +"%d-%b-%y"
+    else
+        date +"%d-%b-%y"
+    fi
+}
+
+get_log_file() {
+    echo "$VAULT_DIR/$(get_log_date).md"
+}
+
+# for frontmatter (ISO format)
+get_iso_date() {
+    local hour
+    hour=$(date +%-H)
+    if (( hour < 7 )); then
+        date -d "yesterday" +"%Y-%m-%d"
+    else
+        date +"%Y-%m-%d"
+    fi
+}
+
+fmt_time() {
+    date +"%l:%M %p"
+}
+
+init_log_file() {
+    local file=$1
+    if [[ ! -f "$file" ]]; then
+        local iso_date
+        iso_date=$(get_iso_date)
+        local display_date
+        display_date=$(date -d "$iso_date" +"%A, %b %d %Y")
+        mkdir -p "$VAULT_DIR"
+        cat > "$file" << EOF
+---
+date: $log_date
+tags: [activity-log]
+---
+# 📊 Activity Log — $display_date
+EOF
+    fi
+}
+
+open_code_block() {
+    local file=$1
+    echo '```' >> "$file"
+}
+
+close_code_block() {
+    local file=$1
+    echo '```' >> "$file"
+    echo "" >> "$file"
+}
+
+write_entry() {
+    local file=$1
+    echo "$2" >> "$file"
+}
+
+write_data() {
+    local file=$1
+    local epoch
+    epoch=$(date +%s)
+    echo "<!-- DATA|$epoch|$2|$3 -->" >> "$file"
+}
+
+# --- tracking ---
+
+do_start() {
+    local last_app="" last_title="" last_state="normal"
+    local current_log_date file
+
+    # check vault is accessible
+    if [[ ! -d "$VAULT_DIR" ]]; then
+        echo "Vault not accessible at $VAULT_DIR" >&2
+        exit 1
+    fi
+
+    current_log_date=$(get_log_date)
+    file=$(get_log_file)
+    init_log_file "$file"
+    open_code_block "$file"
+    write_entry "$file" "$(printf '%8s  ▶ SESSION START' "$(fmt_time)")"
+    write_data "$file" "SESSION_START" ""
+
+    cleanup() {
+        local f
+        f=$(get_log_file)
+        write_entry "$f" "$(printf '%8s  ⏹ SESSION END' "$(fmt_time)")"
+        write_data "$f" "SESSION_END" ""
+        close_code_block "$f"
+        exit 0
+    }
+    trap cleanup SIGTERM SIGINT
+
+    while true; do
+        local hour
+        hour=$(date +%-H)
+
+        # sleep during off-hours (3am to 7am)
+        if (( hour >= 3 && hour < 7 )); then
+            sleep 60
+            continue
+        fi
+
+        # check if day rolled over
+        local new_date
+        new_date=$(get_log_date)
+        if [[ "$new_date" != "$current_log_date" ]]; then
+            write_entry "$file" "$(printf '%8s  ⏹ DAY ROLLOVER' "$(fmt_time)")"
+            write_data "$file" "SESSION_END" ""
+            close_code_block "$file"
+
+            current_log_date="$new_date"
+            file=$(get_log_file)
+            init_log_file "$file"
+            open_code_block "$file"
+            write_entry "$file" "$(printf '%8s  ▶ SESSION START' "$(fmt_time)")"
+            write_data "$file" "SESSION_START" ""
+            last_app="" last_title="" last_state="normal"
+        fi
+
+        file=$(get_log_file)
+
+        # check lock state
+        if pgrep -x hyprlock > /dev/null 2>&1; then
+            if [[ "$last_state" != "locked" ]]; then
+                last_state="locked"
+                write_entry "$file" "$(printf '%8s  🔒 LOCKED' "$(fmt_time)")"
+                write_data "$file" "LOCKED" ""
+            fi
+            sleep "$POLL_INTERVAL"
+            continue
+        fi
+
+        # unlock transition
+        if [[ "$last_state" == "locked" ]]; then
+            last_state="normal"
+            write_entry "$file" "$(printf '%8s  🔓 UNLOCKED' "$(fmt_time)")"
+            write_data "$file" "UNLOCKED" ""
+            last_app="" last_title=""
+        fi
+
+        # get active window
+        local json app title
+        json=$(hyprctl activewindow -j 2>/dev/null)
+        app=$(echo "$json" | jq -r '.class // empty' 2>/dev/null)
+
+        # if hyprctl failed, re-detect socket and retry
+        if [[ -z "$app" ]]; then
+            detect_hyprland
+            json=$(hyprctl activewindow -j 2>/dev/null)
+            app=$(echo "$json" | jq -r '.class // empty' 2>/dev/null)
+        fi
+
+        if [[ -n "$app" ]]; then
+            title=$(echo "$json" | jq -r '.title // empty' 2>/dev/null)
+
+            if [[ -n "$app" && ( "$app" != "$last_app" || "$title" != "$last_title" ) ]]; then
+                last_app="$app"
+                last_title="$title"
+
+                # truncate long titles
+                if (( ${#title} > 80 )); then
+                    title="${title:0:77}..."
+                fi
+
+                write_entry "$file" "$(printf '%8s  %-18s %s' "$(fmt_time)" "$app" "$title")"
+                write_data "$file" "$app" "$title"
+            fi
+        fi
+
+        sleep "$POLL_INTERVAL"
+    done
+}
+
+# --- summary ---
+
+do_summary() {
+    local target="${1:-$(get_log_date)}"
+    local file="$VAULT_DIR/$target.md"
+
+    # also try old YYYY-MM-DD format
+    if [[ ! -f "$file" ]]; then
+        file="$VAULT_DIR/$target.md"
+    fi
+    if [[ ! -f "$file" ]]; then
+        echo "No log found for $target"
+        return 1
+    fi
+
+    declare -A app_times
+    local prev_epoch="" prev_app="" total_seconds=0
+
+    while IFS='|' read -r _ epoch app title; do
+        title="${title% -->}"
+        app="${app}"
+
+        if [[ -n "$prev_epoch" && -n "$prev_app" \
+              && "$prev_app" != "SESSION_END" \
+              && "$prev_app" != "SESSION_START" \
+              && "$prev_app" != "UNLOCKED" ]]; then
+            local diff=$(( epoch - prev_epoch ))
+            if (( diff > 0 && diff < 7200 )); then
+                app_times["$prev_app"]=$(( ${app_times["$prev_app"]:-0} + diff ))
+                total_seconds=$(( total_seconds + diff ))
+            fi
+        fi
+
+        prev_epoch="$epoch"
+        prev_app="$app"
+    done < <(grep -oP '<!-- DATA\|\K[^>]+' "$file" | sed 's/ -->$//')
+
+    if (( total_seconds == 0 )); then
+        echo "No activity data to summarize."
+        return 0
+    fi
+
+    local display_date
+    display_date=$(date -d "$target_date" +"%A, %b %d %Y")
+
+    echo ""
+    echo "━━━ Summary for $display_date ━━━"
+    echo ""
+
+    for app in "${!app_times[@]}"; do
+        echo "${app_times[$app]} $app"
+    done | sort -rn | while read -r seconds app; do
+        local mins=$(( seconds / 60 ))
+        local hrs=$(( mins / 60 ))
+        local remaining_mins=$(( mins % 60 ))
+
+        local time_str
+        if (( hrs > 0 )); then
+            time_str="${hrs}h ${remaining_mins}m"
+        else
+            time_str="${mins}m"
+        fi
+
+        local pct=$(( seconds * 100 / total_seconds ))
+        local bar_len=$(( pct * 15 / 100 ))
+        local bar=""
+        for (( i=0; i<15; i++ )); do
+            if (( i < bar_len )); then
+                bar+="█"
+            else
+                bar+="░"
+            fi
+        done
+
+        printf '  %-18s %7s  %s  %3d%%\n' "$app" "$time_str" "$bar" "$pct"
+    done
+
+    local total_mins=$(( total_seconds / 60 ))
+    local total_hrs=$(( total_mins / 60 ))
+    local total_rem=$(( total_mins % 60 ))
+    echo ""
+    echo "  Total tracked: ${total_hrs}h ${total_rem}m"
+    echo ""
+}
+
+# --- control ---
+
+case "${1:-}" in
+    start)
+        do_start
+        ;;
+    stop)
+        systemctl --user stop activity-tracker 2>/dev/null
+        echo "✓ Tracker stopped."
+        ;;
+    start-service)
+        systemctl --user start activity-tracker
+        echo "✓ Tracker started."
+        ;;
+    status)
+        if systemctl --user is-active activity-tracker &>/dev/null; then
+            echo "✓ Tracker is running"
+            echo ""
+            local today_file
+            today_file="$VAULT_DIR/$(get_log_date).md"
+            if [[ -f "$today_file" ]]; then
+                local count
+                count=$(grep -c '<!-- DATA|' "$today_file" 2>/dev/null || echo 0)
+                echo "  Today's log: $count entries"
+                echo "  File: $(get_log_date).md"
+            fi
+        else
+            echo "✗ Tracker is not running"
+        fi
+        ;;
+    summary)
+        do_summary "$2"
+        ;;
+    *)
+        echo "activity-tracker — lightweight activity logger"
+        echo ""
+        echo "  start-service   Start tracking (via systemd)"
+        echo "  stop            Stop tracking"
+        echo "  status          Check if running"
+        echo "  summary [date]  Show time breakdown (default: today)"
+        echo ""
+        echo "  Date format: YYYY-MM-DD"
+        ;;
+esac

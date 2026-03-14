@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenClaw AI Agent Gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/pratik/.local/npm-global/bin/openclaw gateway --port 18789
+Restart=on-failure
+RestartSec=10
+Environment=HOME=/home/pratik
+EnvironmentFile=/home/pratik/.openclaw/.env
+WorkingDirectory=/home/pratik
+
+[Install]
+WantedBy=default.target

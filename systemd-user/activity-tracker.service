@@ -1,0 +1,13 @@
+[Unit]
+Description=Activity Tracker for Hyprland
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/activity-tracker start
+Restart=on-failure
+RestartSec=30
+Environment=WAYLAND_DISPLAY=wayland-1
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=ChatGPT Scratchpad
+Comment=Launch ChatGPT in a separate Zen Browser profile
+Exec=/home/pratik/.config/hypr/custom/scripts/chatgpt-scratchpad.sh
+Icon=internet-web-browser
+Type=Application
+Terminal=false

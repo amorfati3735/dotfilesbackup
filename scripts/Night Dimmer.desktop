@@ -1,0 +1,8 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Night Dimmer
+Comment=Toggle screen brightness to 50% for night reading
+Exec=/home/pratik/.config/hypr/custom/scripts/night-dimmer.sh
+Icon=video-display-brightness
+Type=Application
+Terminal=false

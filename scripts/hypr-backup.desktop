@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Hyprland Backup (Interactive)
+Comment=Run Hyprland backup with custom commit message prompt
+Exec=/home/pratik/.local/bin/hypr-backup.sh
+Icon=preferences-desktop-wallpaper
+Terminal=true
+Type=Application
+Categories=Utility;

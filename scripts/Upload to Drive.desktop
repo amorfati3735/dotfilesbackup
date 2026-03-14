@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Upload to Drive
+Comment=Upload files to Google Drive via rclone
+Exec=/home/pratik/.config/hypr/custom/scripts/upload-to-drive.sh
+Icon=folder-cloud
+Type=Application
+Terminal=false
