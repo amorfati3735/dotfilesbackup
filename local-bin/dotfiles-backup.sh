@@ -1,5 +1,5 @@
 #!/bin/bash
-# Comprehensive dotfiles + hypr backup to GitHub
+# Comprehensive dotfiles backup to GitHub (amorfati3735/dotfilesbackup)
 # Usage:
 #   dotfiles-backup.sh --auto    (timer: timestamp commit, no prompt)
 #   dotfiles-backup.sh           (manual: rofi prompt for commit message)
@@ -10,7 +10,6 @@ if [[ "$1" == "--auto" ]]; then
 fi
 
 BACKUP_DIR="$HOME/backups/dotfiles"
-HYPR_DIR="$HOME/.config/hypr"
 mkdir -p "$BACKUP_DIR"
 
 # ─── Configs to back up (relative to ~/.config/) ───
@@ -123,37 +122,19 @@ get_commit_msg() {
 
 COMMIT_MSG=$(get_commit_msg)
 
-# ─── Helper: commit & push a git repo ───
-push_repo() {
-    local dir="$1" label="$2"
-    cd "$dir" || return 1
+# ─── Commit and push ───
+cd "$BACKUP_DIR" || exit 1
 
-    if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
-        echo "$label: no changes."
-        return 0
+if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+    if [[ "$AUTO" == false ]]; then
+        notify-send -a "Backup" "Dotfiles backup" "No changes to push" -i dialog-information
     fi
-
-    git add -A
-    git commit -m "$COMMIT_MSG"
-    git push origin main
-    echo "$label: pushed."
-    return 0
-}
-
-# ─── Push dotfiles repo ───
-DOTFILES_OK=false
-HYPR_OK=false
-
-push_repo "$BACKUP_DIR" "Dotfiles" && DOTFILES_OK=true
-
-# ─── Push hypr-dots repo (separate git repo at ~/.config/hypr) ───
-if [ -d "$HYPR_DIR/.git" ]; then
-    push_repo "$HYPR_DIR" "Hypr-dots" && HYPR_OK=true
+    echo "No changes to backup."
+    exit 0
 fi
 
-# ─── Notification ───
-if [[ "$DOTFILES_OK" == true || "$HYPR_OK" == true ]]; then
-    notify-send -a "Backup" "Dotfiles backup" "Pushed to GitHub: $COMMIT_MSG" -i dialog-information
-elif [[ "$AUTO" == false ]]; then
-    notify-send -a "Backup" "Dotfiles backup" "No changes to push" -i dialog-information
-fi
+git add -A
+git commit -m "$COMMIT_MSG"
+git push origin main
+notify-send -a "Backup" "Dotfiles backup" "Pushed: $COMMIT_MSG" -i dialog-information
+echo "Dotfiles backed up: '$COMMIT_MSG'"
