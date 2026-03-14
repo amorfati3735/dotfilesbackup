@@ -24,13 +24,16 @@ ShellRoot {
 
     Component.onCompleted: {
         MaterialThemeLoader.reapplyTheme()
-        Hyprsunset.load()
-        FirstRunExperience.load()
-        ConflictKiller.load()
+        // Defer non-essential services so the lock screen can render first
         Qt.callLater(() => {
-            Cliphist.refresh()
-            Wallpapers.load()
-            Updates.load()
+            Hyprsunset.load()
+            FirstRunExperience.load()
+            ConflictKiller.load()
+            Qt.callLater(() => {
+                Cliphist.refresh()
+                Wallpapers.load()
+                Updates.load()
+            })
         })
     }
 

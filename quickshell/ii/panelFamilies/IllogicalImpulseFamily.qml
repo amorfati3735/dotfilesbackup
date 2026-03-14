@@ -26,7 +26,7 @@ Scope {
     id: scope
     property bool delayed: false
     Timer {
-        interval: 350
+        interval: 800
         running: true
         repeat: false
         onTriggered: scope.delayed = true

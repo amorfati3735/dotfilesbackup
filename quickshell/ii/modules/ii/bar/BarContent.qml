@@ -352,10 +352,10 @@ Item { // Bar content region
                 active: Config.options.bar.weather.enable
 
                 sourceComponent: BarGroup {
-                    TetrisDots {
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.rightMargin: 4
-                    }
+                    // TetrisDots {
+                    //     Layout.alignment: Qt.AlignVCenter
+                    //     Layout.rightMargin: 4
+                    // }
                     WeatherBar {}
                 }
             }
