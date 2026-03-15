@@ -52,7 +52,7 @@ done
 # ─── Fish shell config ───
 if [ -d "$HOME/.config/fish" ]; then
     mkdir -p "$BACKUP_DIR/fish"
-    rsync -a --delete "$HOME/.config/fish/" "$BACKUP_DIR/fish/"
+    rsync -a --delete --exclude='fish_variables' "$HOME/.config/fish/" "$BACKUP_DIR/fish/"
 fi
 
 # ─── Shell dotfiles ───
