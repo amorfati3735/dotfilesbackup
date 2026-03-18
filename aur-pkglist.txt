@@ -27,6 +27,7 @@ illogical-impulse-screencapture
 illogical-impulse-toolkit
 illogical-impulse-widgets
 lmstudio-bin
+localsend-bin
 manga-tui
 pear-desktop-bin
 pokemon-colorscripts-git
