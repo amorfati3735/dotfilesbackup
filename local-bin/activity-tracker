@@ -126,6 +126,7 @@ do_start() {
         write_entry "$f" "$(printf '%8s  ⏹ SESSION END' "$(fmt_time)")"
         write_data "$f" "SESSION_END" ""
         close_code_block "$f"
+        do_inject "$(get_log_date)" 2>/dev/null
         exit 0
     }
     trap cleanup SIGTERM SIGINT
@@ -296,6 +297,20 @@ do_summary() {
     echo ""
 }
 
+# --- inject summary into log file (delegates to Python + rules.json) ---
+
+INJECT_SCRIPT="$HOME/.config/activity-tracker/inject.py"
+
+do_inject() {
+    local target="${1:-$(get_log_date)}"
+    local file="$VAULT_DIR/$target.md"
+    if [[ ! -f "$file" ]]; then
+        echo "No log found for $target"
+        return 1
+    fi
+    python3 "$INJECT_SCRIPT" "$file"
+}
+
 # --- control ---
 
 case "${1:-}" in
@@ -314,10 +329,8 @@ case "${1:-}" in
         if systemctl --user is-active activity-tracker &>/dev/null; then
             echo "✓ Tracker is running"
             echo ""
-            local today_file
             today_file="$VAULT_DIR/$(get_log_date).md"
             if [[ -f "$today_file" ]]; then
-                local count
                 count=$(grep -c '<!-- DATA|' "$today_file" 2>/dev/null || echo 0)
                 echo "  Today's log: $count entries"
                 echo "  File: $(get_log_date).md"
@@ -327,7 +340,16 @@ case "${1:-}" in
         fi
         ;;
     summary)
-        do_summary "$2"
+        do_summary "${2:-}"
+        ;;
+    inject)
+        do_inject "${2:-}"
+        ;;
+    inject-all)
+        for f in "$VAULT_DIR"/*.md; do
+            [[ -f "$f" ]] || continue
+            do_inject "$(basename "$f" .md)"
+        done
         ;;
     *)
         echo "activity-tracker — lightweight activity logger"
@@ -336,7 +358,9 @@ case "${1:-}" in
         echo "  stop            Stop tracking"
         echo "  status          Check if running"
         echo "  summary [date]  Show time breakdown (default: today)"
+        echo "  inject [date]   Inject screen time callout into log note"
+        echo "  inject-all      Inject summary into all log notes"
         echo ""
-        echo "  Date format: YYYY-MM-DD"
+        echo "  Date format: dd-Mon-yy  (e.g. 18-Mar-26)"
         ;;
 esac
