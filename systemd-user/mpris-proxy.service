@@ -1,0 +1,11 @@
+[Unit]
+Description=Forward Bluetooth AVRCP controls (volume, media keys) to MPRIS
+After=bluetooth.target
+
+[Service]
+ExecStart=/usr/bin/mpris-proxy
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

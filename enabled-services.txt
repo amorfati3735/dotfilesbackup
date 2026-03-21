@@ -1,5 +1,6 @@
 activity-tracker.service        enabled enabled
 hyprland.service                enabled enabled
+mpris-proxy.service             enabled enabled
 quickshell-crash-closer.service enabled enabled
 vicinae.service                 enabled enabled
 wireplumber.service             enabled enabled

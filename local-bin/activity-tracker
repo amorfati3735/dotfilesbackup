@@ -70,7 +70,7 @@ init_log_file() {
         mkdir -p "$VAULT_DIR"
         cat > "$file" << EOF
 ---
-date: $log_date
+date: $iso_date
 tags: [activity-log]
 ---
 # 📊 Activity Log — $display_date
@@ -148,6 +148,7 @@ do_start() {
             write_entry "$file" "$(printf '%8s  ⏹ DAY ROLLOVER' "$(fmt_time)")"
             write_data "$file" "SESSION_END" ""
             close_code_block "$file"
+            do_inject "$current_log_date" 2>/dev/null
 
             current_log_date="$new_date"
             file=$(get_log_file)

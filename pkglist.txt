@@ -192,6 +192,7 @@ sddm
 sg3_utils
 smartmontools
 sof-firmware
+speedtest-cli
 spotify
 sudo
 sysfsutils
