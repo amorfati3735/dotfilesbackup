@@ -1,0 +1,8 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Page Timer
+Comment=Toggle page-by-page handwriting timer with Obsidian logging
+Exec=/home/pratik/.config/hypr/custom/scripts/page-timer.sh
+Icon=chronometer-start
+Type=Application
+Terminal=false

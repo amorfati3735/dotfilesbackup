@@ -25,6 +25,25 @@ if status is-interactive # Commands to run in interactive sessions can go here
     alias pamcan pacman
     alias q 'qs -c ii'
 
+    function lap
+        set state_file /tmp/.lap_mode
+        if test -f $state_file
+            # === OFF: back to normal ===
+            rm $state_file
+            echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo >/dev/null
+            bongocat --config ~/.config/bongocat.conf &
+            disown
+            echo "☀  Lap mode OFF — turbo on, bongocat back"
+        else
+            # === ON: chill mode ===
+            touch $state_file
+            echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo >/dev/null
+            pkill -x bongocat 2>/dev/null
+            pkill -x cava 2>/dev/null
+            echo "❄  Lap mode ON — turbo off, bongocat killed"
+        end
+    end
+
     function lid
         set current (grep -Po '(?<=^HandleLidSwitchExternalPower=)\S+' /etc/systemd/logind.conf 2>/dev/null)
         if test "$current" = "ignore"

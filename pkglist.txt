@@ -206,6 +206,7 @@ ttf-bitstream-vera
 ttf-dejavu
 ttf-liberation
 ttf-opensans
+ufw
 unimatrix-git
 unrar
 unzip
