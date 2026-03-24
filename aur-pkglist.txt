@@ -32,6 +32,7 @@ manga-tui
 pear-desktop-bin
 pokemon-colorscripts-git
 qdirstat-bin
+qdl
 qt5ct-kde
 qt6ct-kde
 quickshell-git
