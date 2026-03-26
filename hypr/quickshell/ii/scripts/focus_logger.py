@@ -11,7 +11,7 @@ SESSIONS_FILE_PATH = os.path.join(BASE_PATH, "sessions.md")
 
 def log_to_day_note(task, mins):
     today = datetime.date.today()
-    fname = today.strftime("%d-%b.md")
+    fname = today.strftime("%d-%b-%y.md")
     fpath = os.path.join(DAILY_NOTES_PATH, fname)
     
     log_line = f"- [{task} - {mins}min]"
@@ -33,7 +33,7 @@ def log_to_day_note(task, mins):
 
 def log_to_sessions_table(task, mins):
     fpath = SESSIONS_FILE_PATH
-    today_str = datetime.date.today().strftime("[%d-%b]")
+    today_str = datetime.date.today().strftime("[%d-%b-%y]")
     
     task_row_str = f"| - [{task} - {mins}min] | |"
     date_row_str = f"| {today_str} | |"

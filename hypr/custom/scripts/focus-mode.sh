@@ -37,7 +37,7 @@ format_time() {
 }
 
 get_daily_note() {
-    echo "$DAILY_DIR/$(date '+%d-%b').md"
+    echo "$DAILY_DIR/$(date '+%d-%b-%y').md"
 }
 
 ensure_focus_heading() {

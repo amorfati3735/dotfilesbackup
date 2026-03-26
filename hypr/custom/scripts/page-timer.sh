@@ -22,7 +22,7 @@ PAGE=0
 SESSION_START=""
 LAST_TICK=""
 ROWS=""
-DATE_HEADER="[$(date '+%d-%b')]"
+DATE_HEADER="[$(date '+%d-%b-%y')]"
 
 fmt_duration() {
     local secs=$1

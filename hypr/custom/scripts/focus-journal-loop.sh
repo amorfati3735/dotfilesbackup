@@ -92,7 +92,7 @@ while true; do
         "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
 
     # Append to daily note
-    daily_file="$DAILY_DIR/$(date '+%d-%b').md"
+    daily_file="$DAILY_DIR/$(date '+%d-%b-%y').md"
     time_str=$(date '+%-I:%M%P')
     echo "- **${time_str}** [${rating}/5] — ${entry}" >> "$daily_file"
     log "Logged journal entry: [${rating}/5] ${entry}"

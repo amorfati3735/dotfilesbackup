@@ -79,7 +79,7 @@ while true; do
                 "You said you'd be on: $session_name"
 
             # Log to daily note
-            daily_file="$DAILY_DIR/$(date '+%d-%b').md"
+            daily_file="$DAILY_DIR/$(date '+%d-%b-%y').md"
             time_str=$(date '+%-I:%M%P')
             echo "- ⚠ **${time_str}** opened *${wclass}* during focus" >> "$daily_file"
 
