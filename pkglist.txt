@@ -153,6 +153,7 @@ nvidia-open
 nvidia-prime
 obsidian
 okular
+onlyoffice-bin
 opencode
 openssh
 os-prober
@@ -219,6 +220,7 @@ visual-studio-code-bin
 vulkan-intel
 webapp-manager
 webkit2gtk
+webkitgtk-6.0
 wev
 which
 wl-gammarelay-rs
@@ -244,4 +246,5 @@ zathura
 zathura-pdf-mupdf
 zed
 zen-browser-bin
+zenity
 zip

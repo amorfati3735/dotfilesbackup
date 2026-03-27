@@ -32,3 +32,10 @@ output_path = '~/.local/state/quickshell/user/generated/color.txt'
 [templates.wallpaper]
 input_path = '~/.config/matugen/templates/wallpaper.txt'
 output_path = '~/.local/state/quickshell/user/generated/wallpaper/path.txt'
+
+[templates.vscode]
+input_path = '~/.config/matugen/templates/vscode/colors.json'
+output_path = '~/.local/state/matugen/vscode-colors.json'
+
+[[config.scripts_on_change]]
+path = '~/.config/matugen/templates/vscode/apply-to-vscode.py'

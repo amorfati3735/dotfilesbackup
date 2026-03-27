@@ -29,6 +29,7 @@ illogical-impulse-widgets
 lmstudio-bin
 localsend-bin
 manga-tui
+onlyoffice-bin
 pear-desktop-bin
 pokemon-colorscripts-git
 qdirstat-bin

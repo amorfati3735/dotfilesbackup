@@ -51,7 +51,7 @@ Item { // Bar content region
             fill: parent
             margins: Config.options.bar.cornerStyle === 1 ? (Appearance.sizes.hyprlandGapsOut) : 0 // idk why but +1 is needed
         }
-        color: (Config.options.bar.showBackground && root.hasFloatingWindows) ? Appearance.colors.colLayer0 : ColorUtils.transparentize(Appearance.m3colors.m3surface, 0.35)
+        color: (Config.options.bar.showBackground && root.hasFloatingWindows) ? Appearance.colors.colLayer0 : "transparent"
         Behavior on color {
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
         }
