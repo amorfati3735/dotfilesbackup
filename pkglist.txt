@@ -59,6 +59,7 @@ ffmpegthumbnailer
 ffmpegthumbs
 figlet
 firefox
+foliate
 fsearch
 gallery-dl
 git

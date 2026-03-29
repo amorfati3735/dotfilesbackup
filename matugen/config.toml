@@ -33,6 +33,10 @@ output_path = '~/.local/state/quickshell/user/generated/color.txt'
 input_path = '~/.config/matugen/templates/wallpaper.txt'
 output_path = '~/.local/state/quickshell/user/generated/wallpaper/path.txt'
 
+[templates.rofi]
+input_path = '~/.config/matugen/templates/rofi/browser.rasi'
+output_path = '~/.config/rofi/themes/browser.rasi'
+
 [templates.vscode]
 input_path = '~/.config/matugen/templates/vscode/colors.json'
 output_path = '~/.local/state/matugen/vscode-colors.json'

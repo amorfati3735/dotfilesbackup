@@ -1,0 +1,132 @@
+* {
+    bg:             {{colors.surface.default.hex}}bb;
+    bg-container:   {{colors.surface_container.default.hex}}cc;
+    bg-selected:    {{colors.primary_container.default.hex}}cc;
+    fg:             {{colors.on_surface.default.hex}};
+    fg-dim:         {{colors.on_surface_variant.default.hex}};
+    fg-selected:    {{colors.on_primary_container.default.hex}};
+    accent:         {{colors.primary.default.hex}};
+    border-col:     {{colors.outline_variant.default.hex}}44;
+    transparent:    #00000000;
+
+    background-color: @transparent;
+    text-color: @fg;
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+}
+
+window {
+    background-color: @bg;
+    border: 1px;
+    border-color: @border-col;
+    border-radius: 14px;
+    width: 52%;
+    location: center;
+}
+
+mainbox {
+    children: [ inputbar, listview ];
+    spacing: 0;
+}
+
+inputbar {
+    children: [ textbox-label, entry, num-filtered-rows, textbox-sep, num-rows ];
+    padding: 14px 22px 6px 22px;
+    spacing: 0;
+    background-color: @transparent;
+}
+
+textbox-label {
+    str: "Launch: ";
+    font: "JetBrainsMono NF Medium 14";
+    text-color: @accent;
+    expand: false;
+    vertical-align: 0.5;
+}
+
+entry {
+    placeholder: "filter...";
+    placeholder-color: @fg-dim;
+    font: "JetBrainsMono NF 12";
+    text-color: @fg-dim;
+    vertical-align: 0.5;
+    cursor-color: @accent;
+}
+
+num-filtered-rows {
+    expand: false;
+    font: "JetBrainsMono NF 10";
+    text-color: @accent;
+    vertical-align: 0.5;
+}
+
+textbox-sep {
+    str: "/";
+    expand: false;
+    font: "JetBrainsMono NF 10";
+    text-color: @fg-dim;
+    vertical-align: 0.5;
+}
+
+num-rows {
+    expand: false;
+    font: "JetBrainsMono NF 10";
+    text-color: @fg-dim;
+    vertical-align: 0.5;
+}
+
+listview {
+    lines: 10;
+    columns: 2;
+    fixed-height: true;
+    padding: 4px 12px 14px 12px;
+    scrollbar: true;
+    spacing: 2px;
+    flow: vertical;
+}
+
+scrollbar {
+    handle-width: 3px;
+    handle-color: @accent;
+    border-radius: 3px;
+    margin: 6px 6px 6px 0;
+    background-color: @transparent;
+}
+
+element {
+    padding: 7px 14px;
+    spacing: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+element normal.normal,
+element alternate.normal {
+    background-color: @transparent;
+    text-color: @fg;
+}
+
+element normal.active,
+element alternate.active {
+    background-color: @transparent;
+    text-color: @accent;
+}
+
+element selected.normal,
+element selected.active {
+    background-color: @bg-selected;
+    text-color: @fg-selected;
+}
+
+element-icon {
+    size: 22px;
+    vertical-align: 0.5;
+    cursor: inherit;
+}
+
+element-text {
+    vertical-align: 0.5;
+    font: "JetBrainsMono NF 12";
+    cursor: inherit;
+}
