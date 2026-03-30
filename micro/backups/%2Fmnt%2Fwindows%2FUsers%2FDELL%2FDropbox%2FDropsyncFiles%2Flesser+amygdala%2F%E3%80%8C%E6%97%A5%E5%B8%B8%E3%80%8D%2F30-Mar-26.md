@@ -1,3 +1,123 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Event {
+private:
+    int participantID;
+    string participantName;
+
+    static int totalParticipants;
+
+public:
+    // Set participant details
+    void setParticipant(int id, string name) {
+        participantID = id;
+        participantName = name;
+        totalParticipants++;
+    }
+
+    // Get ID
+    int getParticipantID() {
+        return participantID;
+    }
+
+    // Display participant
+    void display() {
+        cout << "Participant ID: " << participantID
+             << ", Name: " << participantName;
+    }
+
+    // Static function
+    static int getTotalParticipants() {
+        return totalParticipants;
+    }
+};
+
+// Initialize static variable
+int Event::totalParticipants = 0;
+
+int main() {
+    int n;
+    cin >> n;
+
+    Event participants[25];  // max size
+
+    for (int i = 0; i < n; i++) {
+        int id;
+        string name;
+
+        cin >> id;
+        cin.ignore();               // clear newline
+        getline(cin, name);         // full name input
+
+        participants[i].setParticipant(id, name);
+    }
+
+    int searchID;
+    cin >> searchID;
+
+    bool found = false;
+
+    for (int i = 0; i < n; i++) {
+        if (participants[i].getParticipantID() == searchID) {
+            cout << "Participant found: ";
+            participants[i].display();
+            cout << endl;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Participant with ID " << searchID << " not found." << endl;
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #include<iostream>
 then stdlib
 using namespace std;
