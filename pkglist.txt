@@ -160,6 +160,7 @@ openssh
 os-prober
 pacman-contrib
 paru
+pcsx2-latest-bin
 pear-desktop-bin
 perl
 pipewire-alsa

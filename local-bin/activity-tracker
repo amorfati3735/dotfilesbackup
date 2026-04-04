@@ -105,6 +105,8 @@ write_data() {
 
 do_start() {
     local last_app="" last_title="" last_state="normal"
+    local last_data_epoch=0
+    local HEARTBEAT_INTERVAL=300  # write a data entry at least every 5 minutes
     local current_log_date file
 
     # check vault is accessible
@@ -195,16 +197,27 @@ do_start() {
         if [[ -n "$app" ]]; then
             title=$(echo "$json" | jq -r '.title // empty' 2>/dev/null)
 
-            if [[ -n "$app" && ( "$app" != "$last_app" || "$title" != "$last_title" ) ]]; then
+            local now_epoch
+            now_epoch=$(date +%s)
+            local changed=false
+
+            if [[ "$app" != "$last_app" || "$title" != "$last_title" ]]; then
+                changed=true
+            fi
+
+            if $changed || (( now_epoch - last_data_epoch >= HEARTBEAT_INTERVAL )); then
                 last_app="$app"
                 last_title="$title"
+                last_data_epoch=$now_epoch
 
                 # truncate long titles
                 if (( ${#title} > 80 )); then
                     title="${title:0:77}..."
                 fi
 
-                write_entry "$file" "$(printf '%8s  %-18s %s' "$(fmt_time)" "$app" "$title")"
+                if $changed; then
+                    write_entry "$file" "$(printf '%8s  %-18s %s' "$(fmt_time)" "$app" "$title")"
+                fi
                 write_data "$file" "$app" "$title"
             fi
         fi
