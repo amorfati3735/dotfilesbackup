@@ -38,6 +38,7 @@ qdl
 qt5ct-kde
 qt6ct-kde
 quickshell-git
+reshade-shaders-git
 rofi-power-menu
 spotify
 tplay-git
@@ -45,6 +46,7 @@ unimatrix-git
 upscayl-bin
 vicinae-bin
 visual-studio-code-bin
+vkbasalt
 webapp-manager
 wl-gammarelay-rs
 yewtube

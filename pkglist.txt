@@ -1,3 +1,4 @@
+7zip
 accountsservice
 acpi
 alsa-firmware
@@ -188,6 +189,7 @@ quickshell-git
 rclone
 rebuild-detector
 reflector
+reshade-shaders-git
 rofi
 rofi-power-menu
 rtkit
@@ -219,6 +221,7 @@ usb_modeswitch
 usbutils
 vicinae-bin
 visual-studio-code-bin
+vkbasalt
 vulkan-intel
 webapp-manager
 webkit2gtk
