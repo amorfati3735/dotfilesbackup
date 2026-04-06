@@ -116,7 +116,6 @@ libwnck3
 linux
 linux-firmware
 linux-headers
-lmstudio-bin
 localsend-bin
 logrotate
 lolcat

@@ -26,7 +26,6 @@ illogical-impulse-python
 illogical-impulse-screencapture
 illogical-impulse-toolkit
 illogical-impulse-widgets
-lmstudio-bin
 localsend-bin
 manga-tui
 onlyoffice-bin
