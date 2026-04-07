@@ -6,6 +6,7 @@ bt-dualboot
 caelestia-cli
 caelestia-meta
 caelestia-shell
+cheese
 cliwt
 envycontrol
 fsearch
@@ -46,7 +47,6 @@ upscayl-bin
 vicinae-bin
 visual-studio-code-bin
 vkbasalt
-webapp-manager
 wl-gammarelay-rs
 yewtube
 zen-browser-bin

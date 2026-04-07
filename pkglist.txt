@@ -28,6 +28,7 @@ caelestia-meta
 caelestia-shell
 cantarell-fonts
 chafa
+cheese
 chezmoi
 clapper
 cliwt
@@ -99,11 +100,13 @@ inetutils
 intel-gpu-tools
 intel-ucode
 inxi
-iptables-nft
+iptables
 iwd
 jfsutils
+kamoso
 kate
 kdegraphics-thumbnailers
+kdenlive
 keyd
 kimageformats
 less
