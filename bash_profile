@@ -4,6 +4,8 @@
 
 [[ -f ~/.bashrc ]] && . ~/.bashrc
 
+
+
 # Amp CLI
 export PATH="/home/pratik/.amp/bin:$PATH"
 
@@ -14,6 +16,7 @@ if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
   else
     sed -i '/eDP-1/s/@[0-9.]*,/@120.03,/' ~/.config/hypr/monitors.conf
   fi
+  unset AQ_DRM_DEVICES WLR_DRM_DEVICES
   exec start-hyprland
 fi
 

@@ -27,20 +27,31 @@ if status is-interactive # Commands to run in interactive sessions can go here
 
     function lap
         set state_file /tmp/.lap_mode
+        set gpu_dev /sys/bus/pci/devices/0000:01:00.0
         if test -f $state_file
             # === OFF: back to normal ===
             rm $state_file
             echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo >/dev/null
+            # Wake GPU — set power control back to "on"
+            echo on | sudo tee $gpu_dev/power/control >/dev/null
+            powerprofilesctl set balanced 2>/dev/null
             bongocat --config ~/.config/bongocat.conf &
             disown
-            echo "☀  Lap mode OFF — turbo on, bongocat back"
+            set gpu_state (cat $gpu_dev/power/runtime_status 2>/dev/null)
+            echo "☀  Lap mode OFF — turbo on, GPU $gpu_state, bongocat back"
         else
             # === ON: chill mode ===
             touch $state_file
             echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo >/dev/null
             pkill -x bongocat 2>/dev/null
             pkill -x cava 2>/dev/null
-            echo "❄  Lap mode ON — turbo off, bongocat killed"
+            # Suspend GPU — enable runtime PM auto-suspend
+            echo auto | sudo tee $gpu_dev/power/control >/dev/null
+            powerprofilesctl set power-saver 2>/dev/null
+            # Wait a moment for GPU to enter suspend
+            sleep 1
+            set gpu_state (cat $gpu_dev/power/runtime_status 2>/dev/null)
+            echo "❄  Lap mode ON — turbo off, GPU $gpu_state, bongocat killed"
         end
     end
 
