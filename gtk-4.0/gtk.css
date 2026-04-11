@@ -5,9 +5,9 @@
 
 @media (prefers-color-scheme: light) {
     /* Accents */
-    @define-color accent_color #006591;
+    @define-color accent_color #506601;
     @define-color accent_fg_color #ffffff;
-    @define-color accent_bg_color #006591;
+    @define-color accent_bg_color #506601;
     @define-color destructive_bg_color #ffdad6;
     @define-color destructive_fg_color #410002;
     @define-color destructive_color #ba1a1a;
@@ -45,9 +45,9 @@
 @media (prefers-color-scheme: dark) {
 
     /* Accents */
-    @define-color accent_color #89ceff;
-    @define-color accent_fg_color #00344d;
-    @define-color accent_bg_color #89ceff;
+    @define-color accent_color #b6d168;
+    @define-color accent_fg_color #283500;
+    @define-color accent_bg_color #b6d168;
     @define-color destructive_bg_color #93000a;
     @define-color destructive_fg_color #ffdad6;
     @define-color destructive_color #ffb4ab;
