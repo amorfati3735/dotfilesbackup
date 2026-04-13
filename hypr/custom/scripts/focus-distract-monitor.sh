@@ -7,8 +7,28 @@ LOG_FILE="/tmp/focus-mode.log"
 DAILY_DIR="/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala/「日常」"
 WARNED_FILE="/tmp/focus-warned-windows"
 
-# Distracting window classes (lowercase)
-DISTRACT_CLASSES=("kitty" "antigravity")
+BLOCKLIST="$HOME/.config/hypr/custom/scripts/focus-blocklist.md"
+
+# Parse blocked app classes from blocklist file
+load_distract_classes() {
+    DISTRACT_CLASSES=()
+    [[ ! -f "$BLOCKLIST" ]] && return
+    local in_section=false
+    while IFS= read -r line; do
+        if [[ "$line" == "## Blocked Apps" ]]; then
+            in_section=true
+            continue
+        fi
+        if [[ "$line" == "## "* ]] && $in_section; then
+            break
+        fi
+        if $in_section && [[ "$line" =~ ^-\ +(.+)$ ]]; then
+            DISTRACT_CLASSES+=("$(echo "${BASH_REMATCH[1]}" | tr -d ' ' | tr '[:upper:]' '[:lower:]')")
+        fi
+    done < "$BLOCKLIST"
+}
+
+load_distract_classes
 
 # How often to poll (seconds)
 POLL_INTERVAL=5

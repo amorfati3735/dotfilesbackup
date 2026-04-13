@@ -12,7 +12,7 @@ DockButton {
     property var appToplevel
     property var appListRoot
     property int lastFocused: -1
-    property real iconSize: 42
+    property real iconSize: 35
     property real countDotWidth: 10
     property real countDotHeight: 4
     property bool appIsActive: appToplevel.toplevels.find(t => (t.activated == true)) !== undefined
@@ -21,45 +21,6 @@ DockButton {
     readonly property var desktopEntry: DesktopEntries.heuristicLookup(appToplevel.appId)
     enabled: !isSeparator
     implicitWidth: isSeparator ? 1 : implicitHeight - topInset - bottomInset
-
-    // --- macOS-style magnification on hover ---
-    scale: !isSeparator && hovered ? 1.2 : 1.0
-    z: hovered ? 10 : 0
-    Behavior on scale {
-        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-    }
-
-    // --- Bounce animation on app launch ---
-    property real bounceOffset: 0
-    transform: Translate { y: root.bounceOffset }
-    SequentialAnimation {
-        id: bounceAnim
-        NumberAnimation { target: root; property: "bounceOffset"; to: -12; duration: 150; easing.type: Easing.OutQuad }
-        NumberAnimation { target: root; property: "bounceOffset"; to: 0; duration: 300; easing.type: Easing.OutBounce }
-    }
-
-    // --- macOS-style tooltip ---
-    Loader {
-        active: !isSeparator && root.hovered
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.top
-        anchors.bottomMargin: 4
-        sourceComponent: Rectangle {
-            implicitWidth: tooltipText.implicitWidth + 16
-            implicitHeight: tooltipText.implicitHeight + 8
-            radius: Appearance.rounding.small
-            color: Appearance.colors.colLayer1
-            border.width: 1
-            border.color: Appearance.colors.colLayer0Border
-            Text {
-                id: tooltipText
-                anchors.centerIn: parent
-                text: root.desktopEntry?.name ?? root.appToplevel.appId
-                font.pixelSize: Appearance.font.pixelSize.small
-                color: Appearance.colors.colOnLayer0
-            }
-        }
-    }
 
     Loader {
         active: isSeparator
@@ -94,7 +55,6 @@ DockButton {
 
     onClicked: {
         if (appToplevel.toplevels.length === 0) {
-            bounceAnim.restart();
             root.desktopEntry?.execute();
             return;
         }
@@ -160,17 +120,10 @@ DockButton {
                     delegate: Rectangle {
                         required property int index
                         radius: Appearance.rounding.full
-                        implicitWidth: appIsActive ?
-                            ((appToplevel.toplevels.length <= 3) ? root.countDotWidth : root.countDotHeight)
-                            : root.countDotHeight
+                        implicitWidth: (appToplevel.toplevels.length <= 3) ? 
+                            root.countDotWidth : root.countDotHeight // Circles when too many
                         implicitHeight: root.countDotHeight
-                        color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.5)
-                        Behavior on color {
-                            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
-                        }
-                        Behavior on implicitWidth {
-                            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-                        }
+                        color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
                     }
                 }
             }

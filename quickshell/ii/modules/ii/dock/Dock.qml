@@ -2,7 +2,6 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
-import qs.modules.common.functions
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
@@ -88,9 +87,9 @@ Scope { // Scope
                             anchors.fill: parent
                             anchors.topMargin: Appearance.sizes.elevationMargin
                             anchors.bottomMargin: Appearance.sizes.hyprlandGapsOut
-                            color: ColorUtils.transparentize(Appearance.colors.colLayer0, 0.15)
+                            color: Appearance.colors.colLayer0
                             border.width: 1
-                            border.color: ColorUtils.transparentize(Appearance.colors.colLayer0Border, 0.1)
+                            border.color: Appearance.colors.colLayer0Border
                             radius: Appearance.rounding.large
                         }
 

@@ -1,1 +1,33 @@
-Add a stylized beginning page to this document that contains the following names . Shift the remaining contents downwards. Use a box that contains the title Hostel Outing Monitor System too. Adarsh Kumar Singh 25BCE0401. Tinu Goyal 25BAI0047. Utkarh Vardhan Garodia 25BCE2505
+w
+
+
+
+
+
+
+
+
+Function Templates
+
+Class Templates
+
+standard Template Library
+
+Function Overloading
+
+Operator Overloading
+
+virtual Functions
+
+Pure Virtual Functions
+
+Abstract Classes
+
+Single Inheritance
+Multiple Inheritance
+Multi-level Inheritance
+Hierarchical Inheritance
+
+Multipath Inheritance
+
+Inheritance and Constructors

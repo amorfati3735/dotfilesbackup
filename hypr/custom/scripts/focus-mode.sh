@@ -10,6 +10,7 @@ POST_FOCUS_WALLPAPER="$HOME/Wallpapers/castlevania.png"
 BONGOCAT_CMD="bongocat --config $HOME/.config/bongocat.conf"
 JOURNAL_LOOP="$HOME/.config/hypr/custom/scripts/focus-journal-loop.sh"
 DISTRACT_MONITOR="$HOME/.config/hypr/custom/scripts/focus-distract-monitor.sh"
+HOSTS_BLOCK="$HOME/.config/hypr/custom/scripts/focus-hosts-block.sh"
 SELF="$HOME/.config/hypr/custom/scripts/focus-mode.sh"
 
 log() {
@@ -245,21 +246,6 @@ stop_end_timer() {
     log "Stopped end timer"
 }
 
-# --- Rating visualization ---
-
-build_bar() {
-    local val=$1
-    local bar=""
-    for i in 1 2 3 4 5; do
-        if (( i <= val )); then
-            bar+="█"
-        else
-            bar+="░"
-        fi
-    done
-    echo "$bar"
-}
-
 # --- End session (the critical path) ---
 
 end_session() {
@@ -287,28 +273,28 @@ end_session() {
     start_fmt=$(format_time "$start_time")
     end_fmt=$(format_time "$end_actual")
 
-    # Build rating bars from journal entries
-    local ratings_json bars_line avg_rating
-    ratings_json=$(jq '[.journal[] | select(.type == "rating") | .value]' "$STATE_FILE" 2>/dev/null)
-    local rating_count
-    rating_count=$(echo "$ratings_json" | jq 'length' 2>/dev/null || echo 0)
+    # Final journal prompt
+    local final_entry
+    final_entry=$(focus_rofi "Session done" "How'd it go? What did you accomplish?" "input")
+    if [[ -n "$final_entry" ]]; then
+        local daily_note_j time_str_j
+        daily_note_j=$(get_daily_note)
+        time_str_j=$(date '+%-I:%M%P')
+        echo "- **${time_str_j}** ✦ ${final_entry}" >> "$daily_note_j"
 
-    if (( rating_count > 0 )); then
-        avg_rating=$(echo "$ratings_json" | jq 'add / length * 10 | round / 10')
-        bars_line=""
-        for r in $(echo "$ratings_json" | jq '.[]'); do
-            bars_line+="$(build_bar "$r")  "
-        done
-        bars_line="${bars_line%  }"
-    else
-        avg_rating="—"
-        bars_line=""
+        local timestamp_j
+        timestamp_j=$(date +%s)
+        update_state ".journal += [{\"type\": \"entry\", \"time\": $timestamp_j, \"entry\": \"$final_entry\"}]"
     fi
+
+    # Count journal entries
+    local entry_count
+    entry_count=$(jq '[.journal[] | select(.type == "entry")] | length' "$STATE_FILE" 2>/dev/null || echo 0)
 
     # Build summary notification
     local summary="${session_name} | ${start_fmt} → ${end_fmt} (${duration_str})"
-    if [[ -n "$bars_line" ]]; then
-        summary+="\n${bars_line}\nAvg: ${avg_rating}/5"
+    if (( entry_count > 0 )); then
+        summary+="\n${entry_count} check-ins logged"
     fi
 
     # Append summary to daily note
@@ -320,9 +306,11 @@ end_session() {
         pause_dur_str=$(format_duration "$total_pause_seconds")
         pause_info=" — ${pause_count} pause (${pause_dur_str})"
     fi
-    local avg_str=""
-    [[ "$avg_rating" != "—" ]] && avg_str=" — Avg ${avg_rating}/5"
-    echo "> ✦ ${duration_str} session${avg_str}${pause_info}" >> "$daily_note"
+    echo "> ✦ ${duration_str} session${pause_info}" >> "$daily_note"
+
+    # Unblock websites
+    "$HOSTS_BLOCK" unblock &
+    log "Unblocking websites"
 
     log "Switching wallpaper to castlevania..."
     # Switch to post-focus wallpaper
@@ -354,19 +342,16 @@ abort_session() {
     # Ask for journal on abort
     local entry
     entry=$(focus_rofi "Aborting" "why tho" "input")
-    local rating="—"
     if [[ -n "$entry" ]]; then
-        rating=$(echo -e "1\n2\n3\n4\n5" | focus_rofi "Rating (1-5)" "" "list")
-        [[ -z "$rating" || ! "$rating" =~ ^[1-5]$ ]] && rating="—"
-        
-        # Log to daily note
         local daily_note time_str
         daily_note=$(get_daily_note)
         time_str=$(date '+%-I:%M%P')
-        local rating_str=""
-        [[ "$rating" != "—" ]] && rating_str=" [${rating}/5]"
-        echo "- **${time_str}** 🛑 Aborted session: ${entry}${rating_str}" >> "$daily_note"
+        echo "- **${time_str}** 🛑 Aborted: ${entry}" >> "$daily_note"
     fi
+
+    # Unblock websites
+    "$HOSTS_BLOCK" unblock &
+    log "Unblocking websites"
 
     log "Switching wallpaper to castlevania..."
     nohup "$SWITCHWALL" "$POST_FOCUS_WALLPAPER" >/dev/null 2>&1 &
@@ -405,6 +390,10 @@ start_session() {
 
     local now
     now=$(date +%s)
+
+    # Block distracting websites
+    "$HOSTS_BLOCK" block &
+    log "Blocking websites"
 
     # Kill bongocat
     pkill -f bongocat 2>/dev/null

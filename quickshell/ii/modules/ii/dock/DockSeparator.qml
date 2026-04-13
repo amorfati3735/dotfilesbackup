@@ -3,9 +3,9 @@ import QtQuick
 import QtQuick.Layouts
 
 Rectangle {
-    Layout.alignment: Qt.AlignVCenter
-    implicitWidth: 5
-    implicitHeight: 5
-    radius: Appearance.rounding.full
+    Layout.topMargin: Appearance.sizes.elevationMargin + dockRow.padding + Appearance.rounding.normal
+    Layout.bottomMargin: Appearance.sizes.hyprlandGapsOut + dockRow.padding + Appearance.rounding.normal
+    Layout.fillHeight: true
+    implicitWidth: 1
     color: Appearance.colors.colOutlineVariant
 }
