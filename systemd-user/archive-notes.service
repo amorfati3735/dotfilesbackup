@@ -1,0 +1,6 @@
+[Unit]
+Description=Archive past-month daily notes and logs
+
+[Service]
+Type=oneshot
+ExecStart=/home/pratik/scripts/archive-notes.sh

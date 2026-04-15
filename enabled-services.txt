@@ -9,5 +9,6 @@ gnome-keyring-daemon.socket     enabled enabled
 p11-kit-server.socket           enabled enabled
 pipewire-pulse.socket           enabled enabled
 pipewire.socket                 enabled enabled
+archive-notes.timer             enabled enabled
 disk-cleanup.timer              enabled enabled
 dotfiles-backup.timer           enabled enabled
