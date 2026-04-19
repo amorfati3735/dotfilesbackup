@@ -27,8 +27,8 @@
 ## Blocked Websites
 - x.com
 - www.x.com
-- twitter.com
-- www.twitter.com
+- reddit.com
+- www.reddit.com
 
 ## Blocked Apps
 - pcsx2-qt

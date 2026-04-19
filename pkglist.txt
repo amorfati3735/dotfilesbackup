@@ -135,6 +135,7 @@ micro
 mkinitcpio
 modemmanager
 mtools
+namida-bin
 nano
 nano-syntax-highlighting
 ncdu

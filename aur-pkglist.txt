@@ -29,6 +29,7 @@ illogical-impulse-toolkit
 illogical-impulse-widgets
 localsend-bin
 manga-tui
+namida-bin
 onlyoffice-bin
 pcsx2-latest-bin
 pear-desktop-bin
@@ -47,6 +48,7 @@ upscayl-bin
 vicinae-bin
 visual-studio-code-bin
 vkbasalt
+webkit2gtk
 wl-gammarelay-rs
 yewtube
 zen-browser-bin
