@@ -225,6 +225,7 @@ unzip
 upscayl-bin
 usb_modeswitch
 usbutils
+ventoy-bin
 vicinae-bin
 visual-studio-code-bin
 vkbasalt

@@ -5,8 +5,16 @@ LOG_FILE="/tmp/focus-mode.log"
 VAULT="/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala"
 DAILY_DIR="$VAULT/「日常」"
 SWITCHWALL="$HOME/.config/quickshell/ii/scripts/colors/switchwall.sh"
-FOCUS_WALLPAPER="$HOME/Wallpapers/focus.png"
-POST_FOCUS_WALLPAPER="$HOME/Wallpapers/castlevania.png"
+FOCUS_WALL_DIR="$HOME/Wallpapers/lock-in"
+DECOMPRESS_WALL_DIR="$HOME/Wallpapers/decompress"
+
+# Pick a random wallpaper from a directory, with fallback
+random_wall() {
+    local dir="$1" fallback="$2"
+    local pick
+    pick=$(find "$dir" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \) 2>/dev/null | shuf -n1)
+    echo "${pick:-$fallback}"
+}
 BONGOCAT_CMD="bongocat --config $HOME/.config/bongocat.conf"
 JOURNAL_LOOP="$HOME/.config/hypr/custom/scripts/focus-journal-loop.sh"
 DISTRACT_MONITOR="$HOME/.config/hypr/custom/scripts/focus-distract-monitor.sh"
@@ -312,9 +320,8 @@ end_session() {
     "$HOSTS_BLOCK" unblock &
     log "Unblocking websites"
 
-    log "Switching wallpaper to castlevania..."
-    # Switch to post-focus wallpaper
-    nohup "$SWITCHWALL" "$POST_FOCUS_WALLPAPER" >/dev/null 2>&1 &
+    log "Switching wallpaper to decompress..."
+    nohup "$SWITCHWALL" "$(random_wall "$DECOMPRESS_WALL_DIR" "$HOME/Wallpapers/castlevania.png")" >/dev/null 2>&1 &
     disown
 
     log "Relaunching bongocat..."
@@ -353,8 +360,8 @@ abort_session() {
     "$HOSTS_BLOCK" unblock &
     log "Unblocking websites"
 
-    log "Switching wallpaper to castlevania..."
-    nohup "$SWITCHWALL" "$POST_FOCUS_WALLPAPER" >/dev/null 2>&1 &
+    log "Switching wallpaper to decompress..."
+    nohup "$SWITCHWALL" "$(random_wall "$DECOMPRESS_WALL_DIR" "$HOME/Wallpapers/castlevania.png")" >/dev/null 2>&1 &
     disown
 
     log "Relaunching bongocat..."
@@ -400,8 +407,8 @@ start_session() {
     log "Killed bongocat"
 
     # Switch wallpaper
-    "$SWITCHWALL" "$FOCUS_WALLPAPER" >> "$LOG_FILE" 2>&1 &
-    log "Switching wallpaper to focus"
+    "$SWITCHWALL" "$(random_wall "$FOCUS_WALL_DIR" "$HOME/Wallpapers/focus.png")" >> "$LOG_FILE" 2>&1 &
+    log "Switching wallpaper to lock-in"
 
     # Write state file
     jq -n \

@@ -9,13 +9,16 @@ WARNED_FILE="/tmp/focus-warned-windows"
 
 BLOCKLIST="$HOME/.config/hypr/custom/scripts/focus-blocklist.md"
 
-# Parse blocked app classes from blocklist file
-load_distract_classes() {
-    DISTRACT_CLASSES=()
+# Parse a section from blocklist file into an array
+# Usage: load_section "## Section Name" ARRAY_NAME
+load_section() {
+    local header="$1"
+    local -n arr="$2"
+    arr=()
     [[ ! -f "$BLOCKLIST" ]] && return
     local in_section=false
     while IFS= read -r line; do
-        if [[ "$line" == "## Blocked Apps" ]]; then
+        if [[ "$line" == "$header" ]]; then
             in_section=true
             continue
         fi
@@ -23,12 +26,13 @@ load_distract_classes() {
             break
         fi
         if $in_section && [[ "$line" =~ ^-\ +(.+)$ ]]; then
-            DISTRACT_CLASSES+=("$(echo "${BASH_REMATCH[1]}" | tr -d ' ' | tr '[:upper:]' '[:lower:]')")
+            arr+=("$(echo "${BASH_REMATCH[1]}" | tr -d ' ' | tr '[:upper:]' '[:lower:]')")
         fi
     done < "$BLOCKLIST"
 }
 
-load_distract_classes
+load_section "## Blocked Apps" DISTRACT_CLASSES
+load_section "## Blocked Terms" BLOCKED_TERMS
 
 # How often to poll (seconds)
 POLL_INTERVAL=5
@@ -102,6 +106,41 @@ while true; do
             daily_file="$DAILY_DIR/$(date '+%d-%b-%y').md"
             time_str=$(date '+%-I:%M%P')
             echo "- ⚠ **${time_str}** opened *${wclass}* during focus" >> "$daily_file"
+
+        done <<< "$matches"
+    done
+
+    # Check window titles for blocked terms — close matching windows
+    for term in "${BLOCKED_TERMS[@]}"; do
+        matches=$(echo "$clients" | jq -r --arg t "$term" \
+            '.[] | select(.title | ascii_downcase | contains($t)) | "\(.address)|\(.class)|\(.title[0:40])"' 2>/dev/null)
+
+        while IFS= read -r match; do
+            [[ -z "$match" ]] && continue
+
+            addr=$(echo "$match" | cut -d'|' -f1)
+            wclass=$(echo "$match" | cut -d'|' -f2)
+            wtitle=$(echo "$match" | cut -d'|' -f3)
+
+            # Already handled this window?
+            if grep -qF "$addr" "$WARNED_FILE" 2>/dev/null; then
+                continue
+            fi
+
+            echo "$addr" >> "$WARNED_FILE"
+            log "Blocked term '$term' matched: $wclass ($wtitle) — closing"
+
+            # Close the window
+            hyprctl dispatch closewindow "address:$addr" > /dev/null 2>&1
+
+            notify-send -a "Focus Mode" -u normal \
+                "🚫 Blocked: $term" \
+                "Closed $wclass — stay on: $session_name"
+
+            # Log to daily note
+            daily_file="$DAILY_DIR/$(date '+%d-%b-%y').md"
+            time_str=$(date '+%-I:%M%P')
+            echo "- 🚫 **${time_str}** blocked *${wtitle}* (matched: $term)" >> "$daily_file"
 
         done <<< "$matches"
     done
