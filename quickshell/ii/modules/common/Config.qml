@@ -240,6 +240,15 @@ Singleton {
                         property real x: 500
                         property real y: 100
                     }
+                    property JsonObject countdown: JsonObject {
+                        property bool enable: true
+                        property string placementStrategy: "free"
+                        property real x: 700
+                        property real y: 300
+                        property string label: "Countdown"
+                        property string startDate: "2026-04-20"
+                        property string targetDate: "2026-05-20"
+                    }
                     property JsonObject focus: JsonObject {
                         property bool enable: true
                         property string placementStrategy: "free"

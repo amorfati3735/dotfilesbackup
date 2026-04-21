@@ -195,17 +195,20 @@ LazyLoader {
                 }
 
                 // Widget Controls
-                RowLayout {
+                ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 8
-                    
+                    spacing: 6
+
                     StyledText {
                         text: Translation.tr("Background Widgets")
                         font.pixelSize: Appearance.font.pixelSize.small
                         font.weight: Font.DemiBold
                         color: Appearance.colors.colSubtext
-                        Layout.fillWidth: true
                     }
+
+                    Flow {
+                        Layout.fillWidth: true
+                        spacing: 4
 
                     Repeater {
                         model: [
@@ -214,7 +217,8 @@ LazyLoader {
                             { name: "media", icon: "music_note" },
                             { name: "images", icon: "image" },
                             { name: "clock", icon: "schedule" },
-                            { name: "focus", icon: "timer" }
+                            { name: "focus", icon: "timer" },
+                            { name: "countdown", icon: "event" }
                         ]
                         delegate: RippleButton {
                             implicitWidth: 28
@@ -244,13 +248,7 @@ LazyLoader {
                         }
                     }
 
-                    // Separator between toggles and folder button
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.fillHeight: true
-                        color: Appearance.colors.colOutlineVariant
-                    }
-
+                    // Folder button
                     RippleButton {
                         implicitWidth: 28
                         implicitHeight: 28
@@ -270,6 +268,250 @@ LazyLoader {
                         Process {
                             id: openWidgetsFolderProc
                             command: ["dolphin", "--new-window", Config.options.background.widgets.images.directory]
+                        }
+                    }
+                    } // Flow
+                } // ColumnLayout (Widget Controls)
+
+                // Countdown Settings (collapsible)
+                ColumnLayout {
+                    id: countdownSection
+                    Layout.fillWidth: true
+                    spacing: 0
+                    visible: Config.options.background.widgets.countdown.enable
+
+                    property bool expanded: false
+
+                    RippleButton {
+                        Layout.fillWidth: true
+                        implicitHeight: 30
+                        buttonRadius: Appearance.rounding.small
+
+                        onClicked: countdownSection.expanded = !countdownSection.expanded
+
+                        contentItem: RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 4
+                            anchors.rightMargin: 4
+                            spacing: 4
+
+                            MaterialSymbol {
+                                text: "event"
+                                iconSize: Appearance.font.pixelSize.small
+                                color: Appearance.colors.colSubtext
+                            }
+                            StyledText {
+                                text: Config.options.background.widgets.countdown.label || Translation.tr("Countdown")
+                                font.pixelSize: Appearance.font.pixelSize.small
+                                font.weight: Font.DemiBold
+                                color: Appearance.colors.colSubtext
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                visible: {
+                                    let tgt = new Date(Config.options.background.widgets.countdown.targetDate)
+                                    let left = Math.max(0, Math.ceil((tgt - new Date()) / 86400000))
+                                    return left > 0
+                                }
+                                implicitWidth: countdownStatusText.implicitWidth + 12
+                                implicitHeight: 18
+                                radius: 9
+                                color: Appearance.colors.colPrimaryContainer
+
+                                StyledText {
+                                    id: countdownStatusText
+                                    anchors.centerIn: parent
+                                    text: {
+                                        let tgt = new Date(Config.options.background.widgets.countdown.targetDate)
+                                        let left = Math.max(0, Math.ceil((tgt - new Date()) / 86400000))
+                                        return left + "d left"
+                                    }
+                                    font.pixelSize: 9
+                                    font.weight: Font.DemiBold
+                                    color: Appearance.colors.colOnPrimaryContainer
+                                }
+                            }
+
+                            MaterialSymbol {
+                                text: countdownSection.expanded ? "expand_less" : "expand_more"
+                                iconSize: Appearance.font.pixelSize.normal
+                                color: Appearance.colors.colSubtext
+                            }
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
+                        visible: countdownSection.expanded
+                        Layout.topMargin: 6
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            StyledText {
+                                text: Translation.tr("Label")
+                                font.pixelSize: Appearance.font.pixelSize.small
+                                color: Appearance.colors.colSubtext
+                                Layout.preferredWidth: 55
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                implicitHeight: countdownLabelInput.implicitHeight + 12
+                                color: Appearance.colors.colLayer1
+                                radius: Appearance.rounding.small
+                                border.width: countdownLabelInput.activeFocus ? 2 : 1
+                                border.color: countdownLabelInput.activeFocus ? Appearance.colors.colPrimary : Appearance.colors.colOutlineVariant
+
+                                TextInput {
+                                    id: countdownLabelInput
+                                    anchors.fill: parent
+                                    anchors.margins: 6
+                                    color: Appearance.colors.colOnLayer1
+                                    font.pixelSize: Appearance.font.pixelSize.normal
+                                    font.family: Appearance.font.family.main
+                                    clip: true
+                                    selectByMouse: true
+                                    
+                                    Component.onCompleted: text = Config.options.background.widgets.countdown.label
+
+                                    onEditingFinished: {
+                                        Config.setNestedValue("background.widgets.countdown.label", text)
+                                    }
+
+                                    Text {
+                                        anchors.fill: parent
+                                        visible: !countdownLabelInput.text
+                                        text: Translation.tr("Countdown")
+                                        color: Appearance.colors.colSubtext
+                                        font: countdownLabelInput.font
+                                    }
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            StyledText {
+                                text: Translation.tr("Start")
+                                font.pixelSize: Appearance.font.pixelSize.small
+                                color: Appearance.colors.colSubtext
+                                Layout.preferredWidth: 55
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                implicitHeight: countdownStartInput.implicitHeight + 12
+                                color: Appearance.colors.colLayer1
+                                radius: Appearance.rounding.small
+                                border.width: countdownStartInput.activeFocus ? 2 : 1
+                                border.color: countdownStartInput.activeFocus ? Appearance.colors.colPrimary : Appearance.colors.colOutlineVariant
+
+                                TextInput {
+                                    id: countdownStartInput
+                                    anchors.fill: parent
+                                    anchors.margins: 6
+                                    color: Appearance.colors.colOnLayer1
+                                    font.pixelSize: Appearance.font.pixelSize.normal
+                                    font.family: Appearance.font.family.monospace
+                                    clip: true
+                                    selectByMouse: true
+                                    
+                                    Component.onCompleted: text = Config.options.background.widgets.countdown.startDate
+
+                                    onEditingFinished: {
+                                        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+                                            Config.setNestedValue("background.widgets.countdown.startDate", text)
+                                        }
+                                    }
+
+                                    Text {
+                                        anchors.fill: parent
+                                        visible: !countdownStartInput.text
+                                        text: "YYYY-MM-DD"
+                                        color: Appearance.colors.colSubtext
+                                        font: countdownStartInput.font
+                                    }
+                                }
+                            }
+
+                            RippleButton {
+                                implicitWidth: 26
+                                implicitHeight: 26
+                                buttonRadius: Appearance.rounding.small
+                                colBackground: Appearance.colors.colLayer1
+                                colBackgroundHover: Appearance.colors.colLayer1Hover
+
+                                onClicked: {
+                                    let today = new Date()
+                                    let iso = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0')
+                                    countdownStartInput.text = iso
+                                    Config.setNestedValue("background.widgets.countdown.startDate", iso)
+                                }
+
+                                contentItem: MaterialSymbol {
+                                    anchors.centerIn: parent
+                                    text: "today"
+                                    iconSize: Appearance.font.pixelSize.small
+                                    color: Appearance.colors.colSubtext
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            StyledText {
+                                text: Translation.tr("Target")
+                                font.pixelSize: Appearance.font.pixelSize.small
+                                color: Appearance.colors.colSubtext
+                                Layout.preferredWidth: 55
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                implicitHeight: countdownTargetInput.implicitHeight + 12
+                                color: Appearance.colors.colLayer1
+                                radius: Appearance.rounding.small
+                                border.width: countdownTargetInput.activeFocus ? 2 : 1
+                                border.color: countdownTargetInput.activeFocus ? Appearance.colors.colPrimary : Appearance.colors.colOutlineVariant
+
+                                TextInput {
+                                    id: countdownTargetInput
+                                    anchors.fill: parent
+                                    anchors.margins: 6
+                                    color: Appearance.colors.colOnLayer1
+                                    font.pixelSize: Appearance.font.pixelSize.normal
+                                    font.family: Appearance.font.family.monospace
+                                    clip: true
+                                    selectByMouse: true
+                                    
+                                    Component.onCompleted: text = Config.options.background.widgets.countdown.targetDate
+
+                                    onEditingFinished: {
+                                        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+                                            Config.setNestedValue("background.widgets.countdown.targetDate", text)
+                                        }
+                                    }
+
+                                    Text {
+                                        anchors.fill: parent
+                                        visible: !countdownTargetInput.text
+                                        text: "YYYY-MM-DD"
+                                        color: Appearance.colors.colSubtext
+                                        font: countdownTargetInput.font
+                                    }
+                                }
+                            }
+
+                            Item { implicitWidth: 26 }
                         }
                     }
                 }

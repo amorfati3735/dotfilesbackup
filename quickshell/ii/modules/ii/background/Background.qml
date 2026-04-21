@@ -22,6 +22,7 @@ import qs.modules.ii.background.widgets.weather
 import qs.modules.ii.background.widgets.images
 import qs.modules.ii.background.widgets.todo
 import qs.modules.ii.background.widgets.focus
+import qs.modules.ii.background.widgets.countdown
 
 Variants {
     id: root
@@ -342,6 +343,17 @@ Variants {
                 FadeLoader {
                     shown: Config.options.background.widgets.todo.enable
                     sourceComponent: TodoWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
+                        scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
+                        wallpaperScale: bgRoot.effectiveWallpaperScale
+                    }
+                }
+
+                FadeLoader {
+                    shown: Config.options.background.widgets.countdown.enable
+                    sourceComponent: CountdownWidget {
                         screenWidth: bgRoot.screen.width
                         screenHeight: bgRoot.screen.height
                         scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
