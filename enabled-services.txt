@@ -1,4 +1,5 @@
 activity-tracker.service        enabled enabled
+boot-resource-poll.service      enabled enabled
 hyprland.service                enabled enabled
 quickshell-crash-closer.service enabled enabled
 vicinae.service                 enabled enabled

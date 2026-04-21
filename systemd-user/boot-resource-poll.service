@@ -1,0 +1,10 @@
+[Unit]
+Description=Poll resource usage for 60s after login
+Before=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/pratik/scripts/boot-resource-poll.sh
+
+[Install]
+WantedBy=default.target

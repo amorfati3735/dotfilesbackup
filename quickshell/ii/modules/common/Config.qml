@@ -240,15 +240,6 @@ Singleton {
                         property real x: 500
                         property real y: 100
                     }
-                    property JsonObject countdown: JsonObject {
-                        property bool enable: true
-                        property string placementStrategy: "free"
-                        property real x: 700
-                        property real y: 300
-                        property string label: "Countdown"
-                        property string startDate: "2026-04-20"
-                        property string targetDate: "2026-05-20"
-                    }
                     property JsonObject focus: JsonObject {
                         property bool enable: true
                         property string placementStrategy: "free"
@@ -377,7 +368,7 @@ Singleton {
             property JsonObject dock: JsonObject {
                 property bool enable: false
                 property bool monochromeIcons: true
-                property real height: 70
+                property real height: 60
                 property real hoverRegionHeight: 2
                 property bool pinnedOnStartup: false
                 property bool hoverToReveal: true // When false, only reveals on empty workspace
@@ -525,7 +516,7 @@ Singleton {
             property JsonObject search: JsonObject {
                 property int nonAppResultDelay: 30 // This prevents lagging when typing
                 property string engineBaseUrl: "https://www.google.com/search?q="
-                property list<string> excludedSites: []
+                property list<string> excludedSites: ["quora.com", "facebook.com"]
                 property bool sloppy: false // Uses levenshtein distance based scoring instead of fuzzy sort. Very weird.
                 property JsonObject prefix: JsonObject {
                     property bool showDefaultActionsWithoutPrefix: true

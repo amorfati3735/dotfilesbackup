@@ -10,71 +10,67 @@ Singleton {
     id: root
     property var filePath: Directories.todoPath.replace("todo.json", "sticky-notes.json")
     property var notes: []
-    property var pinnedNotes: []
 
-    function _rebuildPinned() {
-        root.pinnedNotes = root.notes.filter(n => n.pinned);
-    }
-
-    function _commit() {
-        root.notes = root.notes.slice(0);
-        _rebuildPinned();
-        save();
-    }
+    readonly property var pinnedNotes: notes.filter(n => n.pinned)
 
     function addNote(text) {
         if (!text || text.trim() === "") return;
-        root.notes.push({
+        notes.push({
             content: text.trim(),
             timestamp: Date.now(),
             pinned: false,
         });
-        _commit();
+        root.notes = notes.slice(0);
+        save();
     }
 
     function removeNote(index) {
-        if (index >= 0 && index < root.notes.length) {
-            root.notes.splice(index, 1);
-            _commit();
+        if (index >= 0 && index < notes.length) {
+            notes.splice(index, 1);
+            root.notes = notes.slice(0);
+            save();
         }
     }
 
     function updateNote(index, text) {
-        if (index >= 0 && index < root.notes.length) {
-            root.notes[index].content = text;
-            _commit();
+        if (index >= 0 && index < notes.length) {
+            notes[index].content = text;
+            root.notes = notes.slice(0);
+            save();
         }
     }
 
     function pinNote(index) {
-        if (index >= 0 && index < root.notes.length) {
-            root.notes[index].pinned = true;
-            _commit();
+        if (index >= 0 && index < notes.length) {
+            notes[index].pinned = true;
+            root.notes = notes.slice(0);
+            save();
         }
     }
 
     function unpinNote(index) {
-        if (index >= 0 && index < root.notes.length) {
-            root.notes[index].pinned = false;
-            _commit();
+        if (index >= 0 && index < notes.length) {
+            notes[index].pinned = false;
+            root.notes = notes.slice(0);
+            save();
         }
     }
 
     function togglePin(index) {
-        if (index >= 0 && index < root.notes.length) {
-            root.notes[index].pinned = !root.notes[index].pinned;
-            _commit();
+        if (index >= 0 && index < notes.length) {
+            notes[index].pinned = !notes[index].pinned;
+            root.notes = notes.slice(0);
+            save();
         }
     }
 
     function updateNotePosition(timestamp, x, y) {
-        let idx = root.notes.findIndex(n => n.timestamp === timestamp);
+        let idx = notes.findIndex(n => n.timestamp === timestamp);
         if (idx !== -1) {
-            if (root.notes[idx].x === x && root.notes[idx].y === y) return;
-            root.notes[idx].x = x;
-            root.notes[idx].y = y;
-            // Position-only update: save without rebuilding pinned list
-            root.notes = root.notes.slice(0);
+            if (notes[idx].x === x && notes[idx].y === y) return;
+            notes[idx].x = x;
+            notes[idx].y = y;
+            root.notes = notes.slice(0);
             save();
         }
     }
@@ -96,7 +92,6 @@ Singleton {
         path: Qt.resolvedUrl(root.filePath)
         onLoaded: {
             root.notes = JSON.parse(fileView.text());
-            root._rebuildPinned();
         }
         onLoadFailed: (error) => {
             if (error === FileViewError.FileNotFound) {
