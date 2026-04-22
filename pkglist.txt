@@ -53,6 +53,7 @@ eos-dracut
 eos-hooks
 ethtool
 evtest
+eww
 ex-vi-compat
 exfatprogs
 f2fs-tools

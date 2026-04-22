@@ -9,6 +9,7 @@ caelestia-shell
 cheese
 cliwt
 envycontrol
+eww
 fsearch
 gallery-dl
 google-chrome

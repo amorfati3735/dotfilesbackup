@@ -50,11 +50,29 @@ LazyLoader {
             }
         }
 
+        Component.onDestruction: {
+            GlobalFocusGrab.removeDismissable(panelWindow);
+        }
+
         Connections {
             target: GlobalFocusGrab
             function onDismissed() {
                 GlobalStates.stickyNotesOpen = false;
             }
+        }
+
+        Process {
+            id: jotLogger
+            property string noteText: ""
+            command: ["bash", "-c",
+                "FILE='/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala/quick-jot.md'; " +
+                "STAMP=$(date +'%a %b %d, %I:%M %p'); " +
+                "TEMP=$(mktemp); " +
+                "echo \"- **${STAMP}** — $1\" > \"$TEMP\"; " +
+                "[ -f \"$FILE\" ] && cat \"$FILE\" >> \"$TEMP\"; " +
+                "mv \"$TEMP\" \"$FILE\";",
+                "bash", jotLogger.noteText
+            ]
         }
 
         Keys.onEscapePressed: {
@@ -106,8 +124,8 @@ LazyLoader {
                         Layout.fillWidth: true
                     }
                     StyledText {
-                        visible: StickyNotes.notes.length > 0
-                        text: StickyNotes.notes.length
+                        visible: notesList.count > 0
+                        text: notesList.count
                         font.pixelSize: Appearance.font.pixelSize.small
                         color: Appearance.colors.colSubtext
                         Layout.rightMargin: 10
@@ -162,6 +180,8 @@ LazyLoader {
                             Keys.onReturnPressed: {
                                 if (newNoteInput.text.trim() !== "") {
                                     StickyNotes.addNote(newNoteInput.text);
+                                    jotLogger.noteText = newNoteInput.text.trim();
+                                    jotLogger.running = true;
                                     newNoteInput.text = "";
                                 }
                             }
@@ -175,6 +195,8 @@ LazyLoader {
                         onClicked: {
                             if (newNoteInput.text.trim() !== "") {
                                 StickyNotes.addNote(newNoteInput.text);
+                                jotLogger.noteText = newNoteInput.text.trim();
+                                jotLogger.running = true;
                                 newNoteInput.text = "";
                             }
                         }
@@ -195,20 +217,17 @@ LazyLoader {
                 }
 
                 // Widget Controls
-                ColumnLayout {
+                RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
-
+                    spacing: 8
+                    
                     StyledText {
                         text: Translation.tr("Background Widgets")
                         font.pixelSize: Appearance.font.pixelSize.small
                         font.weight: Font.DemiBold
                         color: Appearance.colors.colSubtext
-                    }
-
-                    Flow {
                         Layout.fillWidth: true
-                        spacing: 4
+                    }
 
                     Repeater {
                         model: [
@@ -217,8 +236,7 @@ LazyLoader {
                             { name: "media", icon: "music_note" },
                             { name: "images", icon: "image" },
                             { name: "clock", icon: "schedule" },
-                            { name: "focus", icon: "timer" },
-                            { name: "countdown", icon: "event" }
+                            { name: "focus", icon: "timer" }
                         ]
                         delegate: RippleButton {
                             implicitWidth: 28
@@ -248,7 +266,13 @@ LazyLoader {
                         }
                     }
 
-                    // Folder button
+                    // Separator between toggles and folder button
+                    Rectangle {
+                        Layout.preferredWidth: 1
+                        Layout.fillHeight: true
+                        color: Appearance.colors.colOutlineVariant
+                    }
+
                     RippleButton {
                         implicitWidth: 28
                         implicitHeight: 28
@@ -268,250 +292,6 @@ LazyLoader {
                         Process {
                             id: openWidgetsFolderProc
                             command: ["dolphin", "--new-window", Config.options.background.widgets.images.directory]
-                        }
-                    }
-                    } // Flow
-                } // ColumnLayout (Widget Controls)
-
-                // Countdown Settings (collapsible)
-                ColumnLayout {
-                    id: countdownSection
-                    Layout.fillWidth: true
-                    spacing: 0
-                    visible: Config.options.background.widgets.countdown.enable
-
-                    property bool expanded: false
-
-                    RippleButton {
-                        Layout.fillWidth: true
-                        implicitHeight: 30
-                        buttonRadius: Appearance.rounding.small
-
-                        onClicked: countdownSection.expanded = !countdownSection.expanded
-
-                        contentItem: RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 4
-                            anchors.rightMargin: 4
-                            spacing: 4
-
-                            MaterialSymbol {
-                                text: "event"
-                                iconSize: Appearance.font.pixelSize.small
-                                color: Appearance.colors.colSubtext
-                            }
-                            StyledText {
-                                text: Config.options.background.widgets.countdown.label || Translation.tr("Countdown")
-                                font.pixelSize: Appearance.font.pixelSize.small
-                                font.weight: Font.DemiBold
-                                color: Appearance.colors.colSubtext
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
-                            }
-
-                            Rectangle {
-                                visible: {
-                                    let tgt = new Date(Config.options.background.widgets.countdown.targetDate)
-                                    let left = Math.max(0, Math.ceil((tgt - new Date()) / 86400000))
-                                    return left > 0
-                                }
-                                implicitWidth: countdownStatusText.implicitWidth + 12
-                                implicitHeight: 18
-                                radius: 9
-                                color: Appearance.colors.colPrimaryContainer
-
-                                StyledText {
-                                    id: countdownStatusText
-                                    anchors.centerIn: parent
-                                    text: {
-                                        let tgt = new Date(Config.options.background.widgets.countdown.targetDate)
-                                        let left = Math.max(0, Math.ceil((tgt - new Date()) / 86400000))
-                                        return left + "d left"
-                                    }
-                                    font.pixelSize: 9
-                                    font.weight: Font.DemiBold
-                                    color: Appearance.colors.colOnPrimaryContainer
-                                }
-                            }
-
-                            MaterialSymbol {
-                                text: countdownSection.expanded ? "expand_less" : "expand_more"
-                                iconSize: Appearance.font.pixelSize.normal
-                                color: Appearance.colors.colSubtext
-                            }
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 6
-                        visible: countdownSection.expanded
-                        Layout.topMargin: 6
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-
-                            StyledText {
-                                text: Translation.tr("Label")
-                                font.pixelSize: Appearance.font.pixelSize.small
-                                color: Appearance.colors.colSubtext
-                                Layout.preferredWidth: 55
-                            }
-
-                            Rectangle {
-                                Layout.fillWidth: true
-                                implicitHeight: countdownLabelInput.implicitHeight + 12
-                                color: Appearance.colors.colLayer1
-                                radius: Appearance.rounding.small
-                                border.width: countdownLabelInput.activeFocus ? 2 : 1
-                                border.color: countdownLabelInput.activeFocus ? Appearance.colors.colPrimary : Appearance.colors.colOutlineVariant
-
-                                TextInput {
-                                    id: countdownLabelInput
-                                    anchors.fill: parent
-                                    anchors.margins: 6
-                                    color: Appearance.colors.colOnLayer1
-                                    font.pixelSize: Appearance.font.pixelSize.normal
-                                    font.family: Appearance.font.family.main
-                                    clip: true
-                                    selectByMouse: true
-                                    
-                                    Component.onCompleted: text = Config.options.background.widgets.countdown.label
-
-                                    onEditingFinished: {
-                                        Config.setNestedValue("background.widgets.countdown.label", text)
-                                    }
-
-                                    Text {
-                                        anchors.fill: parent
-                                        visible: !countdownLabelInput.text
-                                        text: Translation.tr("Countdown")
-                                        color: Appearance.colors.colSubtext
-                                        font: countdownLabelInput.font
-                                    }
-                                }
-                            }
-                        }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-
-                            StyledText {
-                                text: Translation.tr("Start")
-                                font.pixelSize: Appearance.font.pixelSize.small
-                                color: Appearance.colors.colSubtext
-                                Layout.preferredWidth: 55
-                            }
-
-                            Rectangle {
-                                Layout.fillWidth: true
-                                implicitHeight: countdownStartInput.implicitHeight + 12
-                                color: Appearance.colors.colLayer1
-                                radius: Appearance.rounding.small
-                                border.width: countdownStartInput.activeFocus ? 2 : 1
-                                border.color: countdownStartInput.activeFocus ? Appearance.colors.colPrimary : Appearance.colors.colOutlineVariant
-
-                                TextInput {
-                                    id: countdownStartInput
-                                    anchors.fill: parent
-                                    anchors.margins: 6
-                                    color: Appearance.colors.colOnLayer1
-                                    font.pixelSize: Appearance.font.pixelSize.normal
-                                    font.family: Appearance.font.family.monospace
-                                    clip: true
-                                    selectByMouse: true
-                                    
-                                    Component.onCompleted: text = Config.options.background.widgets.countdown.startDate
-
-                                    onEditingFinished: {
-                                        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-                                            Config.setNestedValue("background.widgets.countdown.startDate", text)
-                                        }
-                                    }
-
-                                    Text {
-                                        anchors.fill: parent
-                                        visible: !countdownStartInput.text
-                                        text: "YYYY-MM-DD"
-                                        color: Appearance.colors.colSubtext
-                                        font: countdownStartInput.font
-                                    }
-                                }
-                            }
-
-                            RippleButton {
-                                implicitWidth: 26
-                                implicitHeight: 26
-                                buttonRadius: Appearance.rounding.small
-                                colBackground: Appearance.colors.colLayer1
-                                colBackgroundHover: Appearance.colors.colLayer1Hover
-
-                                onClicked: {
-                                    let today = new Date()
-                                    let iso = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0')
-                                    countdownStartInput.text = iso
-                                    Config.setNestedValue("background.widgets.countdown.startDate", iso)
-                                }
-
-                                contentItem: MaterialSymbol {
-                                    anchors.centerIn: parent
-                                    text: "today"
-                                    iconSize: Appearance.font.pixelSize.small
-                                    color: Appearance.colors.colSubtext
-                                }
-                            }
-                        }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-
-                            StyledText {
-                                text: Translation.tr("Target")
-                                font.pixelSize: Appearance.font.pixelSize.small
-                                color: Appearance.colors.colSubtext
-                                Layout.preferredWidth: 55
-                            }
-
-                            Rectangle {
-                                Layout.fillWidth: true
-                                implicitHeight: countdownTargetInput.implicitHeight + 12
-                                color: Appearance.colors.colLayer1
-                                radius: Appearance.rounding.small
-                                border.width: countdownTargetInput.activeFocus ? 2 : 1
-                                border.color: countdownTargetInput.activeFocus ? Appearance.colors.colPrimary : Appearance.colors.colOutlineVariant
-
-                                TextInput {
-                                    id: countdownTargetInput
-                                    anchors.fill: parent
-                                    anchors.margins: 6
-                                    color: Appearance.colors.colOnLayer1
-                                    font.pixelSize: Appearance.font.pixelSize.normal
-                                    font.family: Appearance.font.family.monospace
-                                    clip: true
-                                    selectByMouse: true
-                                    
-                                    Component.onCompleted: text = Config.options.background.widgets.countdown.targetDate
-
-                                    onEditingFinished: {
-                                        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-                                            Config.setNestedValue("background.widgets.countdown.targetDate", text)
-                                        }
-                                    }
-
-                                    Text {
-                                        anchors.fill: parent
-                                        visible: !countdownTargetInput.text
-                                        text: "YYYY-MM-DD"
-                                        color: Appearance.colors.colSubtext
-                                        font: countdownTargetInput.font
-                                    }
-                                }
-                            }
-
-                            Item { implicitWidth: 26 }
                         }
                     }
                 }
@@ -743,28 +523,50 @@ LazyLoader {
                     visible: notesList.count > 0
                 }
 
+                Item {
+                    id: notesModelContainer
+                    ListModel { id: notesModel }
+
+                    function syncNotesModel() {
+                        notesModel.clear();
+                        for (let i = StickyNotes.notes.length - 1; i >= 0; i--) {
+                            let n = StickyNotes.notes[i];
+                            notesModel.append({
+                                content: n.content || "",
+                                pinned: !!n.pinned,
+                                noteIndex: i
+                            });
+                        }
+                    }
+
+                    Component.onCompleted: syncNotesModel()
+
+                    Connections {
+                        target: StickyNotes
+                        function onNotesChanged() { notesModelContainer.syncNotesModel(); }
+                    }
+                }
+
                 // Notes list
                 ListView {
                     id: notesList
                     Layout.fillWidth: true
                     implicitHeight: Math.min(contentHeight, 300)
-                    model: StickyNotes.notes
+                    model: notesModel
                     spacing: 6
                     clip: true
                     interactive: contentHeight > 300
 
                     delegate: Rectangle {
                         id: noteDelegate
-                        required property var modelData
                         required property int index
+                        required property string content
+                        required property bool pinned
+                        required property int noteIndex
                         width: notesList.width
                         implicitHeight: noteLayout.implicitHeight + 16
                         radius: Appearance.rounding.small
                         color: noteHover.hovered ? Appearance.colors.colSecondaryContainerHover : Appearance.colors.colSecondaryContainer
-
-                        Behavior on color {
-                            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
-                        }
 
                         HoverHandler {
                             id: noteHover
@@ -788,7 +590,7 @@ LazyLoader {
                             StyledText {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
-                                text: noteDelegate.modelData.content
+                                text: noteDelegate.content
                                 wrapMode: Text.Wrap
                                 color: Appearance.colors.colOnSecondaryContainer
                                 font.pixelSize: Appearance.font.pixelSize.small
@@ -799,21 +601,17 @@ LazyLoader {
                                 implicitWidth: 22
                                 implicitHeight: 22
                                 buttonRadius: Appearance.rounding.full
-                                opacity: (noteHover.hovered || noteDelegate.modelData.pinned) ? 1 : 0
+                                opacity: (noteHover.hovered || noteDelegate.pinned) ? 1 : 0
                                 visible: opacity > 0
 
-                                Behavior on opacity {
-                                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-                                }
-
-                                onClicked: StickyNotes.togglePin(noteDelegate.index)
+                                onClicked: StickyNotes.togglePin(noteDelegate.noteIndex)
 
                                 contentItem: MaterialSymbol {
                                     anchors.centerIn: parent
                                     text: "push_pin"
-                                    fill: noteDelegate.modelData.pinned ? 1 : 0
+                                    fill: noteDelegate.pinned ? 1 : 0
                                     iconSize: Appearance.font.pixelSize.normal
-                                    color: noteDelegate.modelData.pinned ? Appearance.colors.colPrimary : Appearance.colors.colSubtext
+                                    color: noteDelegate.pinned ? Appearance.colors.colPrimary : Appearance.colors.colSubtext
                                 }
                             }
 
@@ -824,11 +622,7 @@ LazyLoader {
                                 opacity: noteHover.hovered ? 1 : 0
                                 visible: opacity > 0
 
-                                Behavior on opacity {
-                                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-                                }
-
-                                onClicked: StickyNotes.removeNote(noteDelegate.index)
+                                onClicked: StickyNotes.removeNote(noteDelegate.noteIndex)
 
                                 contentItem: MaterialSymbol {
                                     anchors.centerIn: parent
