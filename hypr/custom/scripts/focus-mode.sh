@@ -381,6 +381,11 @@ start_session() {
     session_name=$(focus_rofi "Session" "What are you working on?" "input")
     [[ -z "$session_name" ]] && exit 0
 
+    # Phone check
+    local phone_check
+    phone_check=$(focus_rofi "Phone down?" "yes" "input")
+    [[ "${phone_check,,}" != "yes" ]] && exit 0
+
     local end_input
     end_input=$(focus_rofi "Until when?" "e.g. 12am, 11.30, 1am" "input")
     [[ -z "$end_input" ]] && exit 0
