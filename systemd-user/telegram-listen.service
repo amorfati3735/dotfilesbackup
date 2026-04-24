@@ -1,0 +1,11 @@
+[Unit]
+Description=Telegram bot message listener
+After=network-online.target
+
+[Service]
+ExecStart=%h/.config/hypr/custom/scripts/telegram-listen.sh
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

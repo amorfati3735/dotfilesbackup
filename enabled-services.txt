@@ -2,6 +2,7 @@ activity-tracker.service        enabled enabled
 boot-resource-poll.service      enabled enabled
 hyprland.service                enabled enabled
 quickshell-crash-closer.service enabled enabled
+telegram-listen.service         enabled enabled
 vicinae.service                 enabled enabled
 wireplumber.service             enabled enabled
 xdg-user-dirs.service           enabled enabled

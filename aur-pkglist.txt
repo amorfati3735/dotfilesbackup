@@ -35,6 +35,7 @@ onlyoffice-bin
 pcsx2-latest-bin
 pear-desktop-bin
 pokemon-colorscripts-git
+python-telegram-send
 qdirstat-bin
 qdl
 qt5ct-kde

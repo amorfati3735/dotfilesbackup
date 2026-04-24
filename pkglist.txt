@@ -184,6 +184,7 @@ python-defusedxml
 python-jinja
 python-packaging
 python-pip
+python-telegram-send
 python-virtualenv
 qbittorrent
 qdirstat-bin
