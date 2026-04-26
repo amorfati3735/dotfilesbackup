@@ -16,12 +16,25 @@ case "$MODE" in
         fi
         ;;
     *File*)
-        FILE=$(zenity --file-selection --filename="$HOME/Downloads/" --title="Pick a file to send" 2>/dev/null)
-        [[ -z "$FILE" ]] && exit 0
-        if telegram-send --file "$FILE" 2>/dev/null; then
-            notify-send -a "Telegram" "📎 Sent" "$(basename "$FILE")" -t 3000
+        FILES=$(zenity --file-selection --multiple --separator='|' --filename="$HOME/Downloads/" --title="Pick file(s) to send" 2>/dev/null)
+        [[ -z "$FILES" ]] && exit 0
+
+        SUCCESS=0
+        FAIL=0
+        IFS='|' read -ra FILE_ARR <<< "$FILES"
+        for FILE in "${FILE_ARR[@]}"; do
+            if telegram-send --file "$FILE" 2>/dev/null; then
+                SUCCESS=$((SUCCESS + 1))
+            else
+                FAIL=$((FAIL + 1))
+            fi
+        done
+
+        TOTAL=${#FILE_ARR[@]}
+        if [[ "$FAIL" -eq 0 ]]; then
+            notify-send -a "Telegram" "📎 Sent $SUCCESS file(s)" -t 3000
         else
-            notify-send -a "Telegram" "❌ Failed to send" "$(basename "$FILE")" -t 5000
+            notify-send -a "Telegram" "📎 Sent $SUCCESS/$TOTAL" "$FAIL failed" -t 5000
         fi
         ;;
 esac
