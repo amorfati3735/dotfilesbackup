@@ -1,12 +1,12 @@
 * {
-    bg:             #131315bb;
-    bg-container:   #1f1f21cc;
-    bg-selected:    #424753cc;
-    fg:             #e4e2e3;
-    fg-dim:         #c8c6c7;
-    fg-selected:    #dee2f2;
-    accent:         #c2c6d6;
-    border-col:     #47464844;
+    bg:             #131311bb;
+    bg-container:   #20201dcc;
+    bg-selected:    #444936cc;
+    fg:             #e5e2de;
+    fg-dim:         #c9c6c2;
+    fg-selected:    #e1e5cc;
+    accent:         #c5c9b1;
+    border-col:     #47474444;
     transparent:    #00000000;
 
     background-color: @transparent;
