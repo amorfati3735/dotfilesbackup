@@ -27,4 +27,4 @@ hyprctl dispatch layoutmsg swapwithmaster
 hyprctl dispatch layoutmsg orientationleft
 
 # Resize: default is 50% (960px), we want 377px, so shrink by 583px
-hyprctl dispatch resizeactive -- -583 0
+hyprctl dispatch resizeactive -- -450 0
