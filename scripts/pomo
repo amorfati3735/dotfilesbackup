@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# Pomodoro state machine — file-backed, no daemons.
+# Used by eww pill widget.
+
+F=/tmp/pomo.state
+FOCUS=1500   # 25 min
+BREAK=300    # 5 min
+
+init() { echo "idle 0 0 focus $FOCUS 0" > "$F"; }
+[ -f "$F" ] || init
+
+read st end paused mode dur runs < "$F"
+now=$(date +%s)
+
+remaining() {
+  case "$st" in
+    run)   echo $(( end - now )) ;;
+    pause) echo "$paused" ;;
+    *)     echo "$dur" ;;
+  esac
+}
+
+fmt() { local s=$1; ((s<0)) && s=0; printf "%02d:%02d" $((s/60)) $((s%60)); }
+
+save() { echo "$1 $2 $3 $4 $5 $6" > "$F"; }
+
+case "$1" in
+  status)
+    r=$(remaining); ((r<0)) && r=0
+    # auto-transition when timer hits zero
+    if [ "$st" = "run" ] && [ "$r" -eq 0 ]; then
+      if [ "$mode" = "focus" ]; then
+        notify-send -u normal "🍅 Focus done" "Time for a break"
+        mode=break; dur=$BREAK; runs=$((runs+1))
+      else
+        notify-send -u normal "☕ Break done" "Back to focus"
+        mode=focus; dur=$FOCUS
+      fi
+      st=idle; end=0; paused=0
+      save "$st" "$end" "$paused" "$mode" "$dur" "$runs"
+      r=$dur
+    fi
+    pct=$(( dur > 0 ? 100 * (dur - r) / dur : 0 ))
+    icon=$([ "$mode" = focus ] && echo "🍅" || echo "☕")
+    case "$st" in
+      run)   sym="" ;;
+      pause) sym="" ;;
+      *)     sym="" ;;
+    esac
+    label="$icon $(fmt "$r")"
+    printf '{"label":"%s","sym":"%s","state":"%s","mode":"%s","pct":%d}\n' \
+      "$label" "$sym" "$st" "$mode" "$pct"
+    ;;
+  toggle)
+    case "$st" in
+      idle)  save run $((now+dur)) 0 "$mode" "$dur" "$runs" ;;
+      run)   rem=$((end-now)); ((rem<0)) && rem=0; save pause 0 "$rem" "$mode" "$dur" "$runs" ;;
+      pause) save run $((now+paused)) 0 "$mode" "$dur" "$runs" ;;
+    esac
+    ;;
+  reset)
+    d=$([ "$mode" = focus ] && echo "$FOCUS" || echo "$BREAK")
+    save idle 0 0 "$mode" "$d" "$runs"
+    ;;
+  swap)
+    if [ "$mode" = focus ]; then nm=break; nd=$BREAK; else nm=focus; nd=$FOCUS; fi
+    save idle 0 0 "$nm" "$nd" "$runs"
+    ;;
+  scroll)
+    delta=$([ "$2" = "up" ] && echo 60 || echo -60)
+    if [ "$st" = "idle" ]; then
+      nd=$((dur+delta)); ((nd<60)) && nd=60; ((nd>7200)) && nd=7200
+      save idle 0 0 "$mode" "$nd" "$runs"
+    elif [ "$st" = "run" ]; then
+      ne=$((end+delta)); save run "$ne" 0 "$mode" "$dur" "$runs"
+    fi
+    ;;
+  *)
+    echo "usage: pomo {status|toggle|reset|swap|scroll up|scroll down}" >&2
+    exit 1
+    ;;
+esac

@@ -4,9 +4,9 @@
 */
 
 /* Accents */
-@define-color accent_color #a7d394;
-@define-color accent_fg_color #13380a;
-@define-color accent_bg_color #a7d394;
+@define-color accent_color #a8d292;
+@define-color accent_fg_color #153808;
+@define-color accent_bg_color #a8d292;
 @define-color destructive_bg_color #93000a;
 @define-color destructive_fg_color #ffdad6;
 @define-color destructive_color #ffb4ab;
@@ -16,12 +16,12 @@
 /* Base surfaces */
 @define-color window_bg_color #11140f;
 @define-color window_fg_color #e1e4da;
-@define-color headerbar_bg_color #1d211b;
-@define-color headerbar_backdrop_color #1d211b;
+@define-color headerbar_bg_color #1d211a;
+@define-color headerbar_backdrop_color #1d211a;
 @define-color headerbar_fg_color #e1e4da;
-@define-color card_bg_color #1d211b;
+@define-color card_bg_color #1d211a;
 @define-color card_fg_color #e1e4da;
-@define-color sidebar_bg_color #1d211b;
+@define-color sidebar_bg_color #1d211a;
 @define-color sidebar_fg_color #e1e4da;
 @define-color secondary_sidebar_bg_color #191d17;
 @define-color secondary_sidebar_fg_color #e1e4da;

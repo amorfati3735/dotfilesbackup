@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Toggle the pomodoro pill on/off.
+# When closing, also kills the eww daemon so nothing runs in the background.
+
+if eww active-windows 2>/dev/null | grep -q '^pomo:'; then
+    eww close pomo >/dev/null 2>&1
+    eww kill       >/dev/null 2>&1
+    notify-send -t 1500 "🍅 Pomodoro" "Pill hidden"
+else
+    eww open pomo >/dev/null 2>&1
+    notify-send -t 1500 "🍅 Pomodoro" "Pill active"
+fi

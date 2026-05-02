@@ -1,0 +1,8 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Pomodoro Pill
+Comment=Toggle the floating pomodoro pill (eww). Click pill to start/pause, scroll to adjust minutes.
+Exec=/home/pratik/scripts/pomo-toggle
+Icon=alarm-symbolic
+Type=Application
+Terminal=false

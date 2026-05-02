@@ -1,0 +1,8 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Toggle Keyboard
+Comment=Disable/enable internal laptop keyboard (Delete to re-enable)
+Exec=/home/pratik/.config/hypr/custom/scripts/toggle-keyboard.sh
+Icon=input-keyboard-symbolic
+Type=Application
+Terminal=false
