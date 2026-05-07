@@ -1,0 +1,350 @@
+#!/usr/bin/env python3
+"""
+cram — OS exam cram tracker.
+
+Runs from a systemd-user timer (every minute) to fire schedule-aware
+notifications, and from the CLI for quick `done` / `status` / `next` actions.
+
+State: ~/Downloads/amp/cram/state.json
+Schedule: hard-coded below (Thu May 7 13:30 → Fri May 8 00:30, exam 09:30 Fri).
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from datetime import datetime, timedelta, time
+from pathlib import Path
+
+STATE_DIR = Path.home() / "Downloads" / "amp" / "cram"
+STATE_FILE = STATE_DIR / "state.json"
+LOG_FILE = STATE_DIR / "cram.log"
+
+# (start, end, kind, title, hint).  end < start ⇒ ends next day.
+BLOCKS = [
+    ("13:30", "14:10", "num",    "🔢 NUM 1 · CPU scheduling",     "Pick 1 process set, run all 5 algos on it"),
+    ("14:20", "15:40", "num",    "🔢 NUM 2 · Mixed numericals",   "Banker · Page repl · Disk sched · FF/BF/WF · TLB"),
+    ("15:55", "16:30", "theory", "📖 M1 · OS structures",         "Mono/Layered/Microkernel/Modular · syscalls · interrupts · boot"),
+    ("16:30", "17:20", "theory", "📖 M2 · Process / Threads / DL", "PCB · states · threads · deadlock 4 + RAG"),
+    ("17:35", "19:00", "theory", "📖 M3 · Synchronization",        "Peterson · Bakery · semaphores · BB / RW / DP · monitors"),
+    ("19:30", "20:45", "theory", "📖 M4 · Memory + Files",         "Frag · paging · seg · virtual mem · file systems"),
+    ("21:00", "21:40", "num",    "🔢 NUM 3 · Re-drill weak",       "Redo whichever felt shaky + 1 PYQ"),
+    ("21:40", "22:50", "theory", "📖 M5 · Devices / Sec / Virt",   "RAID · disk · threats · crypto · virt · containers"),
+    ("23:00", "00:00", "sheets", "✍ Cheat sheets ×5",              "One A4 per module — BULLETS ONLY"),
+    ("00:00", "00:30", "buffer", "📝 Final read-through",          "Re-read all 5 cheat sheets, then SLEEP"),
+]
+
+# Sounds (freedesktop)
+SND_START   = "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"
+SND_HALFWAY = "/usr/share/sounds/freedesktop/stereo/dialog-information.oga"
+SND_WARN    = "/usr/share/sounds/freedesktop/stereo/bell.oga"
+SND_END     = "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga"
+SND_DONE    = "/usr/share/sounds/freedesktop/stereo/complete.oga"
+
+ANCHOR_DATE = datetime(2026, 5, 7).date()  # Thu May 7 — schedule day
+
+# ---------------------------------------------------------------------------
+# state
+
+def load_state() -> dict:
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    if STATE_FILE.exists():
+        try:
+            return json.loads(STATE_FILE.read_text())
+        except Exception:
+            pass
+    return {"done": [], "fired": {}, "paused_until": None}
+
+def save_state(s: dict) -> None:
+    STATE_FILE.write_text(json.dumps(s, indent=2))
+
+def log(msg: str) -> None:
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    with LOG_FILE.open("a") as f:
+        f.write(f"{datetime.now().isoformat(timespec='seconds')}  {msg}\n")
+
+# ---------------------------------------------------------------------------
+# schedule helpers
+
+def parse_hm(s: str) -> time:
+    h, m = map(int, s.split(":"))
+    return time(h, m)
+
+def block_window(idx: int) -> tuple[datetime, datetime]:
+    start_s, end_s, *_ = BLOCKS[idx]
+    s = parse_hm(start_s); e = parse_hm(end_s)
+    s_dt = datetime.combine(ANCHOR_DATE, s)
+    e_dt = datetime.combine(ANCHOR_DATE, e)
+    # blocks starting at/after midnight roll to next day
+    if s.hour < 6:  # 00:00 buffer
+        s_dt += timedelta(days=1)
+        e_dt += timedelta(days=1)
+    elif e <= s:    # crosses midnight
+        e_dt += timedelta(days=1)
+    return s_dt, e_dt
+
+def all_windows() -> list[tuple[datetime, datetime]]:
+    return [block_window(i) for i in range(len(BLOCKS))]
+
+def current_block(now: datetime) -> int | None:
+    for i, (s, e) in enumerate(all_windows()):
+        if s <= now < e:
+            return i
+    return None
+
+def next_block(now: datetime) -> int | None:
+    for i, (s, _) in enumerate(all_windows()):
+        if now < s:
+            return i
+    return None
+
+# ---------------------------------------------------------------------------
+# notifications
+
+def notify(title: str, body: str = "", urgency: str = "normal", icon: str = "") -> None:
+    cmd = ["notify-send", "-u", urgency, "-a", "OS Cram", "-t", "8000"]
+    if icon:
+        cmd += ["-i", icon]
+    cmd += [title, body]
+    try:
+        subprocess.run(cmd, check=False)
+    except FileNotFoundError:
+        print(f"{title}\n{body}")
+
+def chime(path: str) -> None:
+    if Path(path).exists():
+        subprocess.Popen(["paplay", path],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+# ---------------------------------------------------------------------------
+# progress
+
+def progress_bar(state: dict) -> str:
+    n = len(BLOCKS)
+    done = len(state["done"])
+    width = 20
+    filled = int(width * done / n)
+    bar = "█" * filled + "░" * (width - filled)
+    return f"[{bar}] {done}/{n}"
+
+def status_lines(state: dict) -> list[str]:
+    now = datetime.now()
+    cur = current_block(now)
+    out = [progress_bar(state), ""]
+    for i, ((s, e), b) in enumerate(zip(all_windows(), BLOCKS)):
+        mark = "✅" if i in state["done"] else ("▶️ " if i == cur else "  ")
+        out.append(f"{mark} {b[0]}–{b[1]}  {b[3]}")
+    if cur is not None and cur not in state["done"]:
+        s, e = all_windows()[cur]
+        rem = e - now
+        out.append("")
+        out.append(f"   ↳ {int(rem.total_seconds()//60)} min left in current block")
+    elif (nb := next_block(now)) is not None:
+        s, _ = all_windows()[nb]
+        gap = s - now
+        out.append("")
+        out.append(f"   ↳ next block in {int(gap.total_seconds()//60)} min")
+    return out
+
+# ---------------------------------------------------------------------------
+# tick — fired by systemd timer every minute
+
+def tick() -> None:
+    state = load_state()
+
+    # honour pause
+    if state.get("paused_until"):
+        try:
+            until = datetime.fromisoformat(state["paused_until"])
+            if datetime.now() < until:
+                return
+            state["paused_until"] = None
+        except Exception:
+            state["paused_until"] = None
+
+    now = datetime.now()
+    fired = state.setdefault("fired", {})
+
+    for i, ((s, e), b) in enumerate(zip(all_windows(), BLOCKS)):
+        if i in state["done"]:
+            continue
+        key = str(i)
+        slot = fired.setdefault(key, {})
+
+        # block start (within 1 min after start)
+        if not slot.get("start") and s <= now < s + timedelta(minutes=1):
+            notify(f"▶️  {b[3]}", f"{b[4]}\n\n{b[1]} = end · {int((e-s).total_seconds()//60)} min total",
+                   urgency="critical")
+            chime(SND_START)
+            slot["start"] = True
+
+        # halfway
+        mid = s + (e - s) / 2
+        if not slot.get("halfway") and mid <= now < mid + timedelta(minutes=1):
+            half_min = int((e - now).total_seconds() // 60)
+            notify(f"⏳ Halfway · {b[3]}", f"{half_min} min left.  Keep going.",
+                   urgency="low")
+            chime(SND_HALFWAY)
+            slot["halfway"] = True
+
+        # 5 min warning
+        warn = e - timedelta(minutes=5)
+        if not slot.get("warn") and warn <= now < warn + timedelta(minutes=1):
+            notify(f"⚠️  5 min left · {b[3]}", "Wrap up — note any unfinished items.",
+                   urgency="normal")
+            chime(SND_WARN)
+            slot["warn"] = True
+
+        # end
+        if not slot.get("end") and e <= now < e + timedelta(minutes=1):
+            notify(f"⏰ Block ended · {b[3]}",
+                   "Run `cram done` if you finished the block.\n"
+                   "Run `cram skip` if you're moving on without it.",
+                   urgency="critical")
+            chime(SND_END)
+            slot["end"] = True
+
+    save_state(state)
+
+# ---------------------------------------------------------------------------
+# CLI commands
+
+CHEERS = [
+    "Block down. The brain is winning. 🌱",
+    "That's one more module out of the way. 💪",
+    "Quietly excellent. Keep moving.",
+    "Future-you sends thanks.",
+    "Nice. The numericals fear you.",
+    "Box ticked. Sip water.",
+    "One block at a time, and the day is won.",
+    "Solid. On to the next.",
+]
+
+def cmd_done() -> None:
+    state = load_state()
+    now = datetime.now()
+    cur = current_block(now)
+    # if no current block, accept the last unfinished one whose end has passed
+    target = cur
+    if target is None:
+        for i, (_, e) in enumerate(all_windows()):
+            if e <= now and i not in state["done"]:
+                target = i
+    if target is None:
+        print("No current/pending block to mark done.")
+        return
+    if target in state["done"]:
+        print(f"Block {target} already done.")
+        return
+    state["done"].append(target)
+    save_state(state)
+
+    b = BLOCKS[target]
+    import random
+    cheer = random.choice(CHEERS)
+    nb = next_block(datetime.now())
+    next_line = ""
+    if nb is not None:
+        nb_b = BLOCKS[nb]
+        s, _ = all_windows()[nb]
+        gap = max(0, int((s - datetime.now()).total_seconds() // 60))
+        next_line = f"\n\nNext: {nb_b[3]} in {gap} min ({nb_b[0]})"
+
+    notify(f"✅  {b[3]} — done!",
+           f"{progress_bar(state)}\n{cheer}{next_line}",
+           urgency="critical")
+    chime(SND_DONE)
+    log(f"DONE  {b[3]}")
+    for line in status_lines(state):
+        print(line)
+
+def cmd_skip() -> None:
+    state = load_state()
+    cur = current_block(datetime.now())
+    if cur is None:
+        print("No current block to skip.")
+        return
+    fired = state.setdefault("fired", {}).setdefault(str(cur), {})
+    fired["start"] = fired["halfway"] = fired["warn"] = fired["end"] = True
+    save_state(state)
+    log(f"SKIP  {BLOCKS[cur][3]}")
+    notify(f"⏭  Skipped · {BLOCKS[cur][3]}", "Notifications muted for this block.")
+
+def cmd_pause(mins: int) -> None:
+    state = load_state()
+    until = datetime.now() + timedelta(minutes=mins)
+    state["paused_until"] = until.isoformat()
+    save_state(state)
+    notify(f"⏸  Paused {mins} min", f"Resumes at {until.strftime('%H:%M')}")
+    log(f"PAUSE {mins} min")
+
+def cmd_resume() -> None:
+    state = load_state()
+    state["paused_until"] = None
+    save_state(state)
+    notify("▶️  Resumed", "Notifications back on.")
+    log("RESUME")
+
+def cmd_status() -> None:
+    state = load_state()
+    for line in status_lines(state):
+        print(line)
+
+def cmd_next() -> None:
+    now = datetime.now()
+    cur = current_block(now)
+    if cur is not None:
+        s, e = all_windows()[cur]
+        rem = int((e - now).total_seconds() // 60)
+        b = BLOCKS[cur]
+        print(f"NOW: {b[3]}  ({rem} min left)")
+        print(f"     {b[4]}")
+        return
+    nb = next_block(now)
+    if nb is None:
+        print("Schedule complete. Sleep, hero.")
+        return
+    s, _ = all_windows()[nb]
+    gap = int((s - now).total_seconds() // 60)
+    b = BLOCKS[nb]
+    print(f"NEXT: {b[3]} in {gap} min ({b[0]})")
+    print(f"      {b[4]}")
+
+def cmd_reset() -> None:
+    if STATE_FILE.exists():
+        STATE_FILE.unlink()
+    print("State reset.")
+
+def cmd_help() -> None:
+    print(__doc__)
+    print("Commands:")
+    print("  cram status       — schedule view + progress bar")
+    print("  cram next         — what's now / what's next")
+    print("  cram done         — mark current block complete (celebrates)")
+    print("  cram skip         — silence notifs for current block")
+    print("  cram pause N      — pause notifs for N minutes")
+    print("  cram resume       — undo pause")
+    print("  cram tick         — internal (called by systemd timer)")
+    print("  cram reset        — wipe state")
+
+# ---------------------------------------------------------------------------
+
+def main() -> None:
+    args = sys.argv[1:]
+    if not args:
+        cmd_status(); return
+    cmd = args[0]
+    if cmd == "tick":     tick()
+    elif cmd == "done":   cmd_done()
+    elif cmd == "skip":   cmd_skip()
+    elif cmd == "pause":  cmd_pause(int(args[1]) if len(args) > 1 else 30)
+    elif cmd == "resume": cmd_resume()
+    elif cmd == "status": cmd_status()
+    elif cmd == "next":   cmd_next()
+    elif cmd == "reset":  cmd_reset()
+    else:                 cmd_help()
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,6 @@
+[Unit]
+Description=OS cram — tick notifications
+
+[Service]
+Type=oneshot
+ExecStart=%h/scripts/cram tick
