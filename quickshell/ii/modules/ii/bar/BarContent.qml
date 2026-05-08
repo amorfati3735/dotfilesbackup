@@ -135,8 +135,12 @@ Item { // Bar content region
                 id: focusIndicator
             }
 
+            CramIndicator {
+                id: cramIndicator
+            }
+
             Media {
-                visible: root.useShortenedForm < 2 && !focusIndicator.focusActive
+                visible: root.useShortenedForm < 2 && !focusIndicator.focusActive && !cramIndicator.shown
                 Layout.fillWidth: true
             }
         }

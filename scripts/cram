@@ -21,6 +21,7 @@ from pathlib import Path
 STATE_DIR = Path.home() / "Downloads" / "amp" / "cram"
 STATE_FILE = STATE_DIR / "state.json"
 LOG_FILE = STATE_DIR / "cram.log"
+BAR_FILE = Path("/tmp/cram-state.json")  # consumed by Quickshell bar widget
 
 # (start, end, kind, title, hint).  end < start ⇒ ends next day.
 BLOCKS = [
@@ -64,6 +65,46 @@ def log(msg: str) -> None:
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     with LOG_FILE.open("a") as f:
         f.write(f"{datetime.now().isoformat(timespec='seconds')}  {msg}\n")
+
+def write_bar_state(state: dict) -> None:
+    """Atomically write /tmp/cram-state.json for the Quickshell bar widget."""
+    now = datetime.now()
+    cur = current_block(now)
+    nb  = next_block(now)
+    payload: dict = {
+        "now_ts":      int(now.timestamp()),
+        "done_count":  len(state["done"]),
+        "total":       len(BLOCKS),
+        "paused":      bool(state.get("paused_until")),
+    }
+    if cur is not None and cur not in state["done"]:
+        s, e = block_window(cur)
+        b = BLOCKS[cur]
+        payload.update({
+            "state":     "active",
+            "idx":       cur,
+            "title":     b[3],
+            "hint":      b[4],
+            "kind":      b[2],
+            "start_ts":  int(s.timestamp()),
+            "end_ts":    int(e.timestamp()),
+        })
+    elif nb is not None:
+        s, e = block_window(nb)
+        b = BLOCKS[nb]
+        payload.update({
+            "state":      "upcoming",
+            "idx":        nb,
+            "next_title": b[3],
+            "next_kind":  b[2],
+            "start_ts":   int(s.timestamp()),
+        })
+    else:
+        payload["state"] = "done"
+
+    tmp = BAR_FILE.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(payload))
+    tmp.replace(BAR_FILE)
 
 # ---------------------------------------------------------------------------
 # schedule helpers
@@ -207,6 +248,7 @@ def tick() -> None:
             slot["end"] = True
 
     save_state(state)
+    write_bar_state(state)
 
 # ---------------------------------------------------------------------------
 # CLI commands
@@ -240,6 +282,7 @@ def cmd_done() -> None:
         return
     state["done"].append(target)
     save_state(state)
+    write_bar_state(state)
 
     b = BLOCKS[target]
     import random
@@ -269,6 +312,7 @@ def cmd_skip() -> None:
     fired = state.setdefault("fired", {}).setdefault(str(cur), {})
     fired["start"] = fired["halfway"] = fired["warn"] = fired["end"] = True
     save_state(state)
+    write_bar_state(state)
     log(f"SKIP  {BLOCKS[cur][3]}")
     notify(f"⏭  Skipped · {BLOCKS[cur][3]}", "Notifications muted for this block.")
 
@@ -277,6 +321,7 @@ def cmd_pause(mins: int) -> None:
     until = datetime.now() + timedelta(minutes=mins)
     state["paused_until"] = until.isoformat()
     save_state(state)
+    write_bar_state(state)
     notify(f"⏸  Paused {mins} min", f"Resumes at {until.strftime('%H:%M')}")
     log(f"PAUSE {mins} min")
 
@@ -284,6 +329,7 @@ def cmd_resume() -> None:
     state = load_state()
     state["paused_until"] = None
     save_state(state)
+    write_bar_state(state)
     notify("▶️  Resumed", "Notifications back on.")
     log("RESUME")
 
