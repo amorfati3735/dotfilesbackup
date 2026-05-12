@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# Until 2026-07-04, delegate to the home WiFi script (JioFiber-1 + phone fallback).
+# After that date, fall through to the N-VIT campus login flow below.
+if [ "$(date +%Y%m%d)" -lt 20260704 ]; then
+  exec ~/.local/bin/wifi-login-home.sh "$@"
+fi
+
 source ~/.env_secrets
 
 HOTSPOT="OnePlus Nord CE3"
