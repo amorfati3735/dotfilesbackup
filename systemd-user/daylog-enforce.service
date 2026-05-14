@@ -1,0 +1,6 @@
+[Unit]
+Description=Daylog enforcer (apply friction if today's daylog is missing)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/hypr/custom/scripts/daylog-enforce.sh

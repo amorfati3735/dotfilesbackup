@@ -1,0 +1,10 @@
+[Unit]
+Description=Daylog enforcer — runs every 10min, script self-gates 22:00–02:00
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

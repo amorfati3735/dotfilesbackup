@@ -35,10 +35,10 @@
 - www.x.com
 - reddit.com
 - www.reddit.com
+- mangafire.to
+- www.mangafire.to
 
 ## Blocked Terms
-- anime
-- manga
 
 ## Blocked Apps
 - pcsx2-qt
