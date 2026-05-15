@@ -21,7 +21,7 @@ date descending. Yes/No values render as ✅/❌.
 import re
 import sys
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 
@@ -44,7 +44,8 @@ def dpad(s: str, width: int) -> str:
     return s + " " * max(0, width - dwidth(s))
 
 NOW = datetime.now()
-TODAY_ISO = NOW.strftime("%Y-%m-%d")
+# Logical day rolls over at 4am — entries 00:00–03:59 count as the previous day
+TODAY_ISO = (NOW - timedelta(hours=4)).strftime("%Y-%m-%d")
 NOW_HM = NOW.strftime("%H:%M")
 NOW_RICH = NOW.strftime("%a %b %d, %I:%M %p")  # e.g. "Wed May 13, 09:48 PM"
 EMPTY = "—"
