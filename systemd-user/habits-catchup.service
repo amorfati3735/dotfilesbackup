@@ -1,0 +1,6 @@
+[Unit]
+Description=Habits catchup (mark missed slots)
+
+[Service]
+Type=oneshot
+ExecStart=/home/pratik/.local/bin/habits catchup

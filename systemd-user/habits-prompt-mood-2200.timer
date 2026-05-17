@@ -1,0 +1,11 @@
+[Unit]
+Description=Habit prompt: mood @ 22:00
+
+[Timer]
+OnCalendar=*-*-* 22:00:00
+Persistent=false
+AccuracySec=30s
+Unit=habits-prompt@mood_2200.service
+
+[Install]
+WantedBy=timers.target

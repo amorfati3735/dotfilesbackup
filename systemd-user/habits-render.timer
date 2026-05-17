@@ -1,0 +1,10 @@
+[Unit]
+Description=Habits render periodic
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5min
+Unit=habits-render.service
+
+[Install]
+WantedBy=timers.target

@@ -5,6 +5,7 @@ alsa-firmware
 alsa-plugins
 alsa-utils
 amberol
+android-studio
 android-tools
 antigravity
 app2unit
@@ -83,6 +84,7 @@ haveged
 hdparm
 hwdetect
 hwinfo
+hyprshade
 hyprviz-bin
 illogical-impulse-audio
 illogical-impulse-backlight
@@ -103,6 +105,7 @@ intel-ucode
 inxi
 iptables
 iwd
+jdk-openjdk
 jfsutils
 kamoso
 kate

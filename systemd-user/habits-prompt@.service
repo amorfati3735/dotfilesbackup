@@ -1,0 +1,8 @@
+[Unit]
+Description=Habit prompt instance: %i
+
+[Service]
+Type=oneshot
+Environment=DISPLAY=:0
+Environment=WAYLAND_DISPLAY=wayland-1
+ExecStart=/bin/sh -c 'KEY=$(echo %i | cut -d_ -f1); SLOT=$(echo %i | cut -d_ -f2); H=$(echo $SLOT | cut -c1-2); M=$(echo $SLOT | cut -c3-4); exec /home/pratik/.local/bin/habits dispatch $KEY --slot $H:$M'

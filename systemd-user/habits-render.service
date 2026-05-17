@@ -1,0 +1,6 @@
+[Unit]
+Description=Habits render (regenerate monthly md view)
+
+[Service]
+Type=oneshot
+ExecStart=/home/pratik/.local/bin/habits render

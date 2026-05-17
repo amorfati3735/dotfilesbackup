@@ -1,0 +1,10 @@
+[Unit]
+Description=Habits catchup periodic + on boot
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=habits-catchup.service
+
+[Install]
+WantedBy=timers.target

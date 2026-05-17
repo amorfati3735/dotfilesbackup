@@ -1,3 +1,4 @@
+android-studio
 antigravity
 app2unit
 ascii-image-converter-bin
@@ -14,6 +15,7 @@ fsearch
 gallery-dl
 google-chrome
 grub-customizer
+hyprshade
 hyprviz-bin
 illogical-impulse-audio
 illogical-impulse-backlight
