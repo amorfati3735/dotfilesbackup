@@ -1,0 +1,11 @@
+[Unit]
+Description=Habit prompt: meditate @ 17:05
+
+[Timer]
+OnCalendar=*-*-* 17:05:00
+Persistent=false
+AccuracySec=30s
+Unit=habits-prompt@meditate_1705.service
+
+[Install]
+WantedBy=timers.target
