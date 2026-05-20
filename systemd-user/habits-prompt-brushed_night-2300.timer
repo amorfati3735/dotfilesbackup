@@ -1,0 +1,11 @@
+[Unit]
+Description=Habit prompt: brushed_night @ 23:00
+
+[Timer]
+OnCalendar=*-*-* 23:00:00
+Persistent=false
+AccuracySec=30s
+Unit=habits-prompt@brushed_night_2300.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=Habit prompt: pushups @ 08:00
+
+[Timer]
+OnCalendar=*-*-* 08:00:00
+Persistent=false
+AccuracySec=30s
+Unit=habits-prompt@pushups_0800.service
+
+[Install]
+WantedBy=timers.target
