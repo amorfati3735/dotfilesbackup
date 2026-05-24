@@ -2,8 +2,6 @@ pragma Singleton
 import qs.modules.common
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
-import Quickshell.Io
 import Quickshell.Wayland
 
 /**
@@ -14,19 +12,6 @@ Singleton {
 
     property alias inhibit: idleInhibitor.enabled
     inhibit: false
-
-    GlobalShortcut {
-        name: "idleInhibitToggle"
-        description: "Toggle keep-awake (idle inhibitor)"
-        onPressed: {
-            root.toggleInhibit()
-            notifProc.command = ["notify-send", root.inhibit ? "☕ Screen Awake" : "😴 Idle Enabled",
-                root.inhibit ? "Idle inhibitor active" : "Screen will sleep normally"]
-            notifProc.running = true
-        }
-    }
-
-    Process { id: notifProc }
 
     Connections {
         target: Persistent

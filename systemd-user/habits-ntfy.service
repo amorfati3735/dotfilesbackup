@@ -1,0 +1,13 @@
+[Unit]
+Description=Habits ntfy listener (ingest phone-side responses)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/pratik/.local/bin/habits ntfy-listen
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

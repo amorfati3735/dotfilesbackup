@@ -2,7 +2,6 @@ import qs.modules.ii.bar.weather
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import qs
 import qs.services
@@ -18,15 +17,6 @@ Item { // Bar content region
     property real useShortenedForm: (Appearance.sizes.barHellaShortenScreenWidthThreshold >= screen?.width) ? 2 : (Appearance.sizes.barShortenScreenWidthThreshold >= screen?.width) ? 1 : 0
     readonly property int centerSideModuleWidth: (useShortenedForm == 2) ? Appearance.sizes.barCenterSideModuleWidthHellaShortened : (useShortenedForm == 1) ? Appearance.sizes.barCenterSideModuleWidthShortened : Appearance.sizes.barCenterSideModuleWidth
 
-    // Transparent bar when no windows on the active workspace
-    readonly property var hyprMonitor: Hyprland.monitorFor(screen)
-    readonly property int activeWsId: hyprMonitor?.activeWorkspace?.id ?? -1
-    readonly property bool hasFloatingWindows: {
-        const ws = root.activeWsId;
-        if (ws < 0) return false;
-        return HyprlandData.windowList.some(w => w.workspace.id === ws);
-    }
-
     component VerticalBarSeparator: Rectangle {
         Layout.topMargin: Appearance.sizes.baseBarHeight / 3
         Layout.bottomMargin: Appearance.sizes.baseBarHeight / 3
@@ -37,7 +27,7 @@ Item { // Bar content region
 
     // Background shadow
     Loader {
-        active: Config.options.bar.showBackground && root.hasFloatingWindows && Config.options.bar.cornerStyle === 1 && Config.options.bar.floatStyleShadow
+        active: Config.options.bar.showBackground && Config.options.bar.cornerStyle === 1 && Config.options.bar.floatStyleShadow
         anchors.fill: barBackground
         sourceComponent: StyledRectangularShadow {
             anchors.fill: undefined // The loader's anchors act on this, and this should not have any anchor
@@ -51,12 +41,9 @@ Item { // Bar content region
             fill: parent
             margins: Config.options.bar.cornerStyle === 1 ? (Appearance.sizes.hyprlandGapsOut) : 0 // idk why but +1 is needed
         }
-        color: (Config.options.bar.showBackground && root.hasFloatingWindows) ? Appearance.colors.colLayer0 : "transparent"
-        Behavior on color {
-            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
-        }
+        color: Config.options.bar.showBackground ? Appearance.colors.colLayer0 : "transparent"
         radius: Config.options.bar.cornerStyle === 1 ? Appearance.rounding.windowRounding : 0
-        border.width: (Config.options.bar.cornerStyle === 1 && root.hasFloatingWindows) ? 1 : 0
+        border.width: Config.options.bar.cornerStyle === 1 ? 1 : 0
         border.color: Appearance.colors.colLayer0Border
     }
 
@@ -72,8 +59,8 @@ Item { // Bar content region
         implicitWidth: leftSectionRowLayout.implicitWidth
         implicitHeight: Appearance.sizes.baseBarHeight
 
-        onScrollDown: root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness - 0.05)
-        onScrollUp: root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness + 0.05)
+        onScrollDown: Brightness.decreaseBrightness()
+        onScrollUp: Brightness.increaseBrightness()
         onMovedAway: GlobalStates.osdBrightnessOpen = false
         onPressed: event => {
             if (event.button === Qt.LeftButton)
@@ -83,7 +70,7 @@ Item { // Bar content region
         // Visual content
         ScrollHint {
             reveal: barLeftSideMouseArea.hovered
-            icon: "light_mode"
+            icon: Hyprsunset.gamma === 100 ? "light_mode" : "wb_twilight"
             tooltipText: Translation.tr("Scroll to change brightness")
             side: "left"
             anchors.left: parent.left
@@ -131,16 +118,8 @@ Item { // Bar content region
                 Layout.fillWidth: root.useShortenedForm === 2
             }
 
-            FocusIndicator {
-                id: focusIndicator
-            }
-
-            CramIndicator {
-                id: cramIndicator
-            }
-
             Media {
-                visible: root.useShortenedForm < 2 && !focusIndicator.focusActive && !cramIndicator.shown
+                visible: root.useShortenedForm < 2
                 Layout.fillWidth: true
             }
         }
@@ -350,16 +329,12 @@ Item { // Bar content region
                 Layout.fillHeight: true
             }
 
-            // Tetris dots + Weather
+            // Weather
             Loader {
                 Layout.leftMargin: 4
                 active: Config.options.bar.weather.enable
 
                 sourceComponent: BarGroup {
-                    // TetrisDots {
-                    //     Layout.alignment: Qt.AlignVCenter
-                    //     Layout.rightMargin: 4
-                    // }
                     WeatherBar {}
                 }
             }

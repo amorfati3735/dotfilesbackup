@@ -13,16 +13,6 @@ Singleton {
     id: root
 
     property bool available: false
-
-    Timer {
-        id: startupDelay
-        property bool finished: false
-        interval: 60000 // 1 minute
-        running: true
-        repeat: false
-        onTriggered: finished = true
-    }
-
     property alias checking: checkUpdatesProc.running
     property int count: 0
     
@@ -48,7 +38,7 @@ Singleton {
 
     Process {
         id: checkAvailabilityProc
-        running: Config.ready && Config.options.updates.enableCheck && startupDelay.finished
+        running: Config.ready && Config.options.updates.enableCheck
         command: ["which", "checkupdates"]
         onExited: (exitCode, exitStatus) => {
             root.available = (exitCode === 0);

@@ -14,9 +14,6 @@ Scope {
     id: bar
     property bool showBarBackground: Config.options.bar.showBackground
 
-    StickyNotesPopup {}
-    QuickCapture {}
-
     Variants {
         // For each monitor
         model: {
@@ -154,7 +151,7 @@ Scope {
                             bottom: undefined
                         }
                         height: Appearance.rounding.screenRounding
-                        active: showBarBackground && barContent.hasFloatingWindows && Config.options.bar.cornerStyle === 0 // Hug
+                        active: showBarBackground && Config.options.bar.cornerStyle === 0 // Hug
 
                         states: State {
                             name: "bottom"

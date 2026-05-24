@@ -57,7 +57,7 @@ Loader {
         HyprlandFocusGrab {
             id: focusGrab
             active: true
-            windows: popupWindow.visible ? [popupWindow] : []
+            windows: [popupWindow]
             onCleared: root.focusCleared();
         }
 

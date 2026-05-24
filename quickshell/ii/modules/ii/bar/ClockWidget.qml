@@ -18,7 +18,6 @@ Item {
 
         StyledText {
             font.pixelSize: Appearance.font.pixelSize.large
-            font.bold: true
             color: Appearance.colors.colOnLayer1
             text: DateTime.time
         }

@@ -86,7 +86,7 @@ Singleton {
             }
 
             property JsonObject ai: JsonObject {
-                property string systemPrompt: "## Style\n- Use casual tone, don't be formal! Make sure you answer precisely without hallucination and prefer bullet points over walls of text. You can have a friendly greeting at the beginning of the conversation, but don't repeat the user's question\n\n## Context (ignore when irrelevant)\n- You are a helpful and inspiring sidebar assistant on a {DISTRO} Linux system\n- Desktop environment: {DE}\n- Current date & time: {DATETIME}\n- Focused app: {WINDOWCLASS}\n\n## Presentation\n- Use Markdown features in your response: \n  - **Bold** text to **highlight keywords** in your response\n  - **Split long information into small sections** with h2 headers and a relevant emoji at the start of it (for example `## 🐧 Linux`). Bullet points are preferred over long paragraphs, unless you're offering writing support or instructed otherwise by the user.\n- Asked to compare different options? You should firstly use a table to compare the main aspects, then elaborate or include relevant comments from online forums *after* the table. Make sure to provide a final recommendation for the user's use case!\n- Use LaTeX formatting for mathematical and scientific notations whenever appropriate. Enclose all LaTeX '$$' delimiters. NEVER generate LaTeX code in a latex block unless the user explicitly asks for it. DO NOT use LaTeX for regular documents (resumes, letters, essays, CVs, etc.).\n"
+                property string systemPrompt: "## Style\n- Use casual tone, don't be formal!\n- Always be brief and to the point, unless asked otherwise\n- Don't repeat the user's question\n- Be approachable: Avoid using overly complicated, domain-specific terms and provide analogies when asked to explain a concept\n\n## Context (ignore when irrelevant)\n- You are a helpful and inspiring sidebar assistant on a {DISTRO} Linux system\n- Desktop environment: {DE}\n- Current date & time: {DATETIME}\n- Focused app: {WINDOWCLASS}\n\n## Presentation\n- Use Markdown features in your response: \n  - **Bold** text to **highlight keywords** in your response\n  - **Split long information into small sections** with h2 headers and a relevant emoji at the start of it (for example `## 🐧 Linux`). Bullet points are preferred over long paragraphs, unless you're offering writing support or instructed otherwise by the user.\n- Asked to compare different options? You should firstly use a table to compare the main aspects, then elaborate or include relevant comments from online forums *after* the table. Make sure to provide a final recommendation for the user's use case!\n- Use LaTeX formatting for mathematical and scientific notations whenever appropriate. Enclose all LaTeX '$$' delimiters. NEVER generate LaTeX code in a latex block unless the user explicitly asks for it. DO NOT use LaTeX for regular documents (resumes, letters, essays, CVs, etc.).\n\nThanks!\n"
                 property string tool: "functions" // search, functions, or none
                 property list<var> extraModels: [
                     {
@@ -209,49 +209,6 @@ Singleton {
                         property real x: 400
                         property real y: 100
                     }
-                    property JsonObject media: JsonObject {
-                        property bool enable: true
-                        property string placementStrategy: "free"
-                        property real x: 100
-                        property real y: 400
-                    }
-                    property JsonObject images: JsonObject {
-                        property bool enable: true
-                        property string directory: "/home/pratik/Pictures/widgets"
-                        property real defaultWidth: 200
-                        property real defaultHeight: 200
-                        property real defaultOpacity: 1.0
-                        property real defaultRotation: 0
-                        property real defaultBorderWidth: 0
-                        property string defaultBorderColor: "#ffffff"
-                        property real defaultCornerRadius: -1 // -1 = use Appearance.rounding.small
-                        property string defaultFitMode: "cover" // "cover", "fit", "stretch"
-                        property bool defaultShadow: true
-                    }
-                    property JsonObject systemmonitor: JsonObject {
-                        property bool enable: true
-                        property string placementStrategy: "free"
-                        property real x: 100
-                        property real y: 600
-                    }
-                    property JsonObject todo: JsonObject {
-                        property bool enable: true
-                        property string placementStrategy: "free"
-                        property real x: 500
-                        property real y: 100
-                    }
-                    property JsonObject focus: JsonObject {
-                        property bool enable: true
-                        property string placementStrategy: "free"
-                        property real x: 200
-                        property real y: 200
-                        property string style: "ember_dark"
-                        property list<var> presets: [
-                            { "task": "Study Session", "mins": 25 },
-                            { "task": "Coding", "mins": 45 },
-                            { "task": "Quick Break", "mins": 5 }
-                        ]
-                    }
                 }
                 property string wallpaperPath: ""
                 property string thumbnailPath: ""
@@ -259,9 +216,9 @@ Singleton {
                 property JsonObject parallax: JsonObject {
                     property bool vertical: false
                     property bool autoVertical: false
-                    property bool enableWorkspace: true
-                    property real workspaceZoom: 1.07 // Relative to your screen, not wallpaper size
-                    property bool enableSidebar: true
+                    property bool enableWorkspace: false
+                    property real workspaceZoom: 1.07 // Relative to wallpaper size
+                    property bool enableSidebar: false
                     property real widgetsFactor: 1.2
                 }
             }
@@ -368,7 +325,7 @@ Singleton {
             property JsonObject dock: JsonObject {
                 property bool enable: false
                 property bool monochromeIcons: true
-                property real height: 70
+                property real height: 60
                 property real hoverRegionHeight: 2
                 property bool pinnedOnStartup: false
                 property bool hoverToReveal: true // When false, only reveals on empty workspace
@@ -442,6 +399,10 @@ Singleton {
 
             property JsonObject notifications: JsonObject {
                 property int timeout: 7000
+                property JsonObject monitor: JsonObject {
+                    property bool enable: false
+                    property string name: "" // Name of the monitor to show notifications on, like "eDP-1". Find out with 'hyprctl monitors' command
+                }
             }
 
             property JsonObject osd: JsonObject {
@@ -516,7 +477,7 @@ Singleton {
             property JsonObject search: JsonObject {
                 property int nonAppResultDelay: 30 // This prevents lagging when typing
                 property string engineBaseUrl: "https://www.google.com/search?q="
-                property list<string> excludedSites: []
+                property list<string> excludedSites: ["quora.com", "facebook.com"]
                 property bool sloppy: false // Uses levenshtein distance based scoring instead of fuzzy sort. Very weird.
                 property JsonObject prefix: JsonObject {
                     property bool showDefaultActionsWithoutPrefix: true

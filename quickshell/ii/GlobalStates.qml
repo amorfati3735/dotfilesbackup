@@ -21,23 +21,15 @@ Singleton {
     property bool overviewOpen: false
     property bool regionSelectorOpen: false
     property bool searchOpen: false
-    property bool stickyNotesOpen: false
     property bool screenLocked: false
     property bool screenLockContainsCharacters: false
     property bool screenUnlockFailed: false
+    property bool screenTranslatorOpen: false
     property bool sessionOpen: false
     property bool superDown: false
     property bool superReleaseMightTrigger: true
     property bool wallpaperSelectorOpen: false
     property bool workspaceShowNumbers: false
-    
-    // Focus Timer State Buffers (written by StickyNotesPopup, read by FocusWidget)
-    property string focusTaskBuffer: ""
-    property int focusMinutesBuffer: 0
-    property int focusTrigger: 0
-
-    // Quick Capture
-    property bool quickCaptureOpen: false
 
     onSidebarRightOpenChanged: {
         if (GlobalStates.sidebarRightOpen) {
@@ -55,24 +47,6 @@ Singleton {
         }
         onReleased: {
             root.superDown = false
-        }
-    }
-
-    GlobalShortcut {
-        name: "quickCapture"
-        description: "Opens quick capture overlay"
-
-        onPressed: {
-            root.quickCaptureOpen = !root.quickCaptureOpen
-        }
-    }
-
-    GlobalShortcut {
-        name: "stickyNotes"
-        description: "Opens sticky notes popup"
-
-        onPressed: {
-            root.stickyNotesOpen = !root.stickyNotesOpen
         }
     }
 }

@@ -1,5 +1,6 @@
 activity-tracker.service               enabled enabled
 boot-resource-poll.service             enabled enabled
+habits-ntfy.service                    enabled enabled
 quickshell-crash-closer.service        enabled enabled
 telegram-listen.service                enabled enabled
 vicinae.service                        enabled enabled
@@ -16,7 +17,4 @@ disk-cleanup.timer                     enabled enabled
 dotfiles-backup.timer                  enabled enabled
 habits-catchup.timer                   enabled enabled
 habits-prompt-brushed_night-2300.timer enabled enabled
-habits-prompt-meditate-0900.timer      enabled enabled
-habits-prompt-mood-2200.timer          enabled enabled
-habits-prompt-pushups-0800.timer       enabled enabled
 habits-render.timer                    enabled enabled
