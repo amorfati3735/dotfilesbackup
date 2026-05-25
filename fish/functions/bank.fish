@@ -1,4 +1,4 @@
-function bank --description "Parse bank statement PDFs into Obsidian markdown"
+function bank --description "Parse bank statement PDFs into Obsidian markdown (and decrypt the PDFs in place)"
     set -l dir $argv[1]
     if test -z "$dir"
         set dir .
@@ -31,24 +31,53 @@ function bank --description "Parse bank statement PDFs into Obsidian markdown"
     end
 
     for pdf in $gpay_pdfs $other_pdfs
-        set -l basename (basename "$pdf" .pdf)
-        set -l outfile "$vault/$basename.md"
-
         echo "📄 Processing: $pdf"
 
+        set -l tmp_out (mktemp --suffix=.md)
+        set -l tmp_err (mktemp)
+
         # Try with password first, then without
-        $python "$script" "$pdf" "$password" > "$outfile" 2>/dev/null
-        if test ! -s "$outfile"
-            $python "$script" "$pdf" > "$outfile" 2>/dev/null
+        $python "$script" "$pdf" "$password" > "$tmp_out" 2>"$tmp_err"
+        if test ! -s "$tmp_out"
+            $python "$script" "$pdf" > "$tmp_out" 2>"$tmp_err"
         end
 
-        if test ! -s "$outfile"
-            rm -f "$outfile"
+        if test ! -s "$tmp_out"
+            rm -f "$tmp_out" "$tmp_err"
             echo "   ⚠️  No transactions found, skipping"
             continue
         end
-        set count (math $count + 1)
+
+        # Extract suggested filename from stderr (e.g. "FILENAME:apr spend")
+        set -l fname (grep '^FILENAME:' "$tmp_err" | string replace -r '^FILENAME:' '')
+        if test -z "$fname"
+            set fname (basename "$pdf" .pdf)
+        end
+
+        set -l outfile "$vault/$fname.md"
+        mv "$tmp_out" "$outfile"
+        rm -f "$tmp_err"
+
         echo "   ✅ → $outfile"
+
+        # Decrypt the source PDF in place (strip the password)
+        $python -c "
+import sys
+from pypdf import PdfReader, PdfWriter
+path, pw = sys.argv[1], sys.argv[2]
+r = PdfReader(path)
+if r.is_encrypted:
+    if r.decrypt(pw) == 0:
+        sys.exit(0)  # wrong password; leave as is
+    w = PdfWriter()
+    for p in r.pages:
+        w.add_page(p)
+    with open(path, 'wb') as f:
+        w.write(f)
+    print('   🔓 password removed', file=sys.stderr)
+" "$pdf" "$password" 2>&1 | grep -v '^$'
+
+        set count (math $count + 1)
     end
 
     if test $count -eq 0

@@ -393,38 +393,93 @@ def apply_group_adjustment(tx):
 # ── Build markdown ──────────────────────────────────────────
 
 def build_markdown(tx, source_type: str, filename: str) -> str:
-    md = []
-
-    # Header
-    months = sorted({t["date_display"].split("-")[1] for t in tx})
+    # Header values
+    months_in_order = sorted(
+        {t["date_display"].split("-")[1] for t in tx},
+        key=lambda m: MONTH_MAP.get(m, "00"),
+    )
     years = sorted({t["date_full"].split(", ")[-1].strip() for t in tx})
-    month_str = ", ".join(months)
+    month_str = ", ".join(months_in_order)
     year_str = years[0] if years else ""
     bank = "SBI" if source_type == "sbi" else "GPay"
 
-    md.append("---")
-    md.append(f"tags: [finance, {bank.lower()}, bank-statement]")
-    md.append(f"source: \"{filename}\"")
-    md.append(f"bank: {bank}")
-    md.append(f"period: \"{month_str} {year_str}\"")
-    md.append("---")
-    md.append("")
-    md.append(f"# {bank} — {month_str} {year_str}")
-    md.append("")
-
-    # ── 1. DAILY SPENDING TABLE ──
-    # Group by date, show each txn with running sum per day
-    md.append("## Daily spending")
-    md.append("")
-    md.append("| Date | Entity | ₹ Debit | ₹ Credit | Day Total |")
-    md.append("|------|--------|---------|----------|-----------|")
-
+    # Pre-compute aggregates needed by Summary (which now comes first)
     by_date = OrderedDict()
     for t in sorted(tx, key=lambda x: x["date_sort"]):
         by_date.setdefault(t["date_display"], []).append(t)
 
-    grand_debit = 0
-    grand_credit = 0
+    grand_debit = sum(t["amount"] for t in tx if t["kind"] in ("paid", "topup"))
+    grand_credit = sum(t["amount"] for t in tx if t["kind"] == "received")
+
+    md = []
+    md.append(f"# {bank} — {month_str} {year_str}")
+    md.append("")
+
+    # ── 1. SUMMARY ──
+    md.append("## Summary")
+    md.append("")
+    md.append(f"- 💸 Total debited: **₹{fmt(grand_debit)}**")
+    md.append(f"- 💰 Total credited: **₹{fmt(grand_credit)}**")
+    md.append(f"- 📊 Net outflow: **₹{fmt(grand_debit - grand_credit)}**")
+    date_objs = sorted(datetime.strptime(t["date_sort"], "%Y%m%d") for t in tx)
+    span_days = (date_objs[-1] - date_objs[0]).days + 1 if date_objs else 0
+    md.append(f"- 📅 Active days: **{len(by_date)}/{span_days}**")
+    if grand_debit > 0 and len(by_date) > 0:
+        avg_daily = grand_debit / len(by_date)
+        md.append(f"- 📈 Avg spend/active day: **₹{fmt(avg_daily)}**")
+    md.append("")
+
+    # ── 2. TOP SPENDS (sorted by amount) ──
+    paid_tx = sorted(
+        [t for t in tx if t["kind"] in ("paid", "topup")],
+        key=lambda x: x["amount"], reverse=True,
+    )
+    md.append("## Top spends")
+    md.append("")
+    md.append("| # | Entity | ₹ | Date |")
+    md.append("|---|--------|---|------|")
+    for rank, t in enumerate(paid_tx[:15], 1):
+        medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, str(rank))
+        md.append(f"| {medal} | {t['entity']} | {fmt(t['amount'])} | {t['date_display']} |")
+    md.append("")
+
+    # ── 3. CATEGORY BREAKDOWN (heuristic) ──
+    md.append("## Category hints")
+    md.append("")
+    categories = defaultdict(lambda: {"total": 0, "items": []})
+    for t in tx:
+        if t["kind"] != "paid":
+            continue
+        ent_lower = (t["entity"] or "").lower()
+        reason_lower = (t["reason"] or "").lower()
+        combined = ent_lower + " " + reason_lower
+
+        if any(k in combined for k in ["food", "court", "restaurant", "cafe", "eat", "biryani", "kitchen", "mess", "canteen"]):
+            cat = "🍔 Food"
+        elif any(k in combined for k in ["airtel", "jio", "vodafone", "recharge", "mobile"]):
+            cat = "📱 Recharge"
+        elif any(k in combined for k in ["amazon", "flipkart", "shop", "store", "mart"]):
+            cat = "🛒 Shopping"
+        elif any(k in combined for k in ["uber", "ola", "train", "irctc", "travel", "railway"]):
+            cat = "🚗 Transport"
+        elif any(k in combined for k in ["top-up", "topup", "wallet"]):
+            cat = "💳 Top-up"
+        else:
+            cat = "📦 Other"
+
+        categories[cat]["total"] += t["amount"]
+        categories[cat]["items"].append(t)
+
+    for cat in sorted(categories, key=lambda c: categories[c]["total"], reverse=True):
+        data = categories[cat]
+        md.append(f"- {cat}: **₹{fmt(data['total'])}** ({len(data['items'])} txns)")
+    md.append("")
+
+    # ── 4. DAILY SPENDING TABLE ──
+    md.append("## Daily spending")
+    md.append("")
+    md.append("| Date | Entity | ₹ Debit | ₹ Credit | Day Total |")
+    md.append("|------|--------|---------|----------|-----------|")
 
     for date, items in by_date.items():
         day_debits = []
@@ -437,24 +492,20 @@ def build_markdown(tx, source_type: str, filename: str) -> str:
 
             if t["kind"] == "paid":
                 day_debits.append(t["amount"])
-                grand_debit += t["amount"]
                 debit_cell = fmt(t["amount"])
                 credit_cell = ""
             elif t["kind"] == "received":
                 day_credits.append(t["amount"])
-                grand_credit += t["amount"]
                 debit_cell = ""
                 credit_cell = fmt(t["amount"])
             else:
                 # topup etc — treat as debit
                 day_debits.append(t["amount"])
-                grand_debit += t["amount"]
                 debit_cell = fmt(t["amount"])
                 credit_cell = ""
 
             date_cell = f"**{date}**" if first else ""
-            day_total_cell = ""
-            md.append(f"| {date_cell} | {entity}{note} | {debit_cell} | {credit_cell} | {day_total_cell} |")
+            md.append(f"| {date_cell} | {entity}{note} | {debit_cell} | {credit_cell} |  |")
             first = False
 
         # Day summary row
@@ -475,18 +526,7 @@ def build_markdown(tx, source_type: str, filename: str) -> str:
     md.append(f"| **TOTAL** | | **{fmt(grand_debit)}** | **{fmt(grand_credit)}** | **net: {fmt(grand_debit - grand_credit)}** |")
     md.append("")
 
-    # ── 2. TOP SPENDS (sorted by amount) ──
-    paid_tx = sorted([t for t in tx if t["kind"] in ("paid", "topup")], key=lambda x: x["amount"], reverse=True)
-    md.append("## Top spends")
-    md.append("")
-    md.append("| # | Entity | ₹ | Date |")
-    md.append("|---|--------|---|------|")
-    for rank, t in enumerate(paid_tx[:15], 1):
-        medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, str(rank))
-        md.append(f"| {medal} | {t['entity']} | {fmt(t['amount'])} | {t['date_display']} |")
-    md.append("")
-
-    # ── 3. REPEATED ENTITIES (with net) ──
+    # ── 5. REPEATED ENTITIES (with net) ──
     md.append("## Repeated entities")
     md.append("")
 
@@ -522,67 +562,32 @@ def build_markdown(tx, source_type: str, filename: str) -> str:
             md.append(f"- **{ent}** ({data['count']}x) — `{expr}` = `{prefix}{net_str}`")
     md.append("")
 
-    # ── 4. IMPULSIVE SPENDS (<₹40) ──
+    # ── 6. IMPULSIVE SPENDS (<₹40) ──
     imp_items = [t for t in tx if t["kind"] == "paid" and t["amount"] < 40]
     imp_total = sum(t["amount"] for t in imp_items)
 
     md.append("## Impulsive spends (<₹40)")
     md.append("")
     if imp_items:
-        parts = [f"{fmt(t['amount'])}({t['entity'][:10]})" for t in imp_items]
         md.append(f"**{len(imp_items)}** transactions → `{' + '.join(fmt(t['amount']) for t in imp_items)}` = **₹{fmt(imp_total)}**")
     else:
         md.append("_None._")
     md.append("")
 
-    # ── 5. CATEGORY BREAKDOWN (heuristic) ──
-    md.append("## Category hints")
-    md.append("")
-
-    categories = defaultdict(lambda: {"total": 0, "items": []})
-    for t in tx:
-        if t["kind"] != "paid":
-            continue
-        ent_lower = (t["entity"] or "").lower()
-        reason_lower = (t["reason"] or "").lower()
-        combined = ent_lower + " " + reason_lower
-
-        if any(k in combined for k in ["food", "court", "restaurant", "cafe", "eat", "biryani", "kitchen", "mess", "canteen"]):
-            cat = "🍔 Food"
-        elif any(k in combined for k in ["airtel", "jio", "vodafone", "recharge", "mobile"]):
-            cat = "📱 Recharge"
-        elif any(k in combined for k in ["amazon", "flipkart", "shop", "store", "mart"]):
-            cat = "🛒 Shopping"
-        elif any(k in combined for k in ["uber", "ola", "train", "irctc", "travel", "railway"]):
-            cat = "🚗 Transport"
-        elif any(k in combined for k in ["top-up", "topup", "wallet"]):
-            cat = "💳 Top-up"
-        else:
-            cat = "📦 Other"
-
-        categories[cat]["total"] += t["amount"]
-        categories[cat]["items"].append(t)
-
-    for cat in sorted(categories, key=lambda c: categories[c]["total"], reverse=True):
-        data = categories[cat]
-        md.append(f"- {cat}: **₹{fmt(data['total'])}** ({len(data['items'])} txns)")
-    md.append("")
-
-    # ── 6. SUMMARY ──
-    md.append("## Summary")
-    md.append("")
-    md.append(f"- 💸 Total debited: **₹{fmt(grand_debit)}**")
-    md.append(f"- 💰 Total credited: **₹{fmt(grand_credit)}**")
-    md.append(f"- 📊 Net outflow: **₹{fmt(grand_debit - grand_credit)}**")
-    date_objs = sorted(datetime.strptime(t["date_sort"], "%Y%m%d") for t in tx)
-    span_days = (date_objs[-1] - date_objs[0]).days + 1 if date_objs else 0
-    md.append(f"- 📅 Active days: **{len(by_date)}/{span_days}**")
-    if paid_tx:
-        avg_daily = grand_debit / len(by_date)
-        md.append(f"- 📈 Avg spend/active day: **₹{fmt(avg_daily)}**")
-    md.append("")
-
     return "\n".join(md)
+
+
+def suggested_filename(tx) -> str:
+    """Suggest output filename in the form 'mon spend' (lowercase 3-letter month)."""
+    months_in_order = sorted(
+        {t["date_display"].split("-")[1] for t in tx},
+        key=lambda m: MONTH_MAP.get(m, "00"),
+    )
+    if not months_in_order:
+        return "spend"
+    if len(months_in_order) == 1:
+        return f"{months_in_order[0].lower()} spend"
+    return f"{months_in_order[0].lower()}-{months_in_order[-1].lower()} spend"
 
 
 # ── Main ─────────────────────────────────────────────────────
@@ -615,6 +620,8 @@ def main():
     tx = resolve_all_entities(tx)
     tx = apply_group_adjustment(tx)
     md = build_markdown(tx, stmt_type, filename)
+    # Emit suggested filename on stderr so callers can rename the output
+    print(f"FILENAME:{suggested_filename(tx)}", file=sys.stderr)
     print(md)
 
 
