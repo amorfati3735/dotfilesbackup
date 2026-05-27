@@ -1,0 +1,81 @@
+# See https://wiki.hyprland.org/Configuring/Binds/
+#!
+##! User
+bind = Ctrl+Super, Slash, exec, xdg-open ~/.config/illogical-impulse/config.json # Edit shell config
+bind = Ctrl+Super+Alt, Slash, exec, xdg-open ~/.config/hypr/custom/keybinds.conf # Edit extra keybinds
+
+unbind = SUPER, C
+unbind = SUPER, W
+unbind = SUPER, L
+unbind = SUPER, D
+unbind = SUPER SHIFT, C
+unbind = Ctrl+Super, R
+bind = SUPER, L, global, quickshell:idleInhibitToggle                                                            # Toggle keep-awake
+bind = SUPER, D, exec, ~/.local/bin/show-desktop-toggle.sh                                                       # Toggle show desktop
+bind = Ctrl+Super, R, exec, killall ags agsv1 gjs ydotool qs quickshell; qs -c $qsConfig & # Restart widgets
+
+##! Web (LAlt)
+binds = Alt_L, C, exec, ~/.config/hypr/custom/scripts/launch-calc.sh                                          # Calculator (tiled left)
+binds = Alt_L, Q, exec, xdg-open "https://drive.google.com/drive/folders/1SBXoFGg_N8mLaUFk19SGC0jBHj1vj_SO"   # Google Drive
+binds = Alt_L, V, exec, xdg-open "https://vtop.vit.ac.in/vtop/login"                                            # VTOP
+binds = Alt_L, W, exec, xdg-open "https://web.whatsapp.com/"                                                    # WhatsApp Web
+binds = Alt_L, G, exec, xdg-open https://mail.google.com/mail/u/2/                                              # Gmail
+binds = Alt_L, 3, exec, xdg-open "https://aistudio.google.com"                                                  # Google AI Studio
+binds = Alt_L, 4, exec, xdg-open "https://monkeytype.com/"                                                      # Monkeytype
+bind = SUPER, C, exec, xdg-open "https://chatgpt.com/"                                                       # ChatGPT
+bind = SUPER SHIFT, C, exec, google-chrome-stable --app=https://chatgpt.com/ --class=chatgpt-pwa             # ChatGPT PWA
+
+##! Web (RAlt)
+binds = Alt_R, R, exec, xdg-open "https://www.youtube.com/playlist?list=PLdo5W4Nhv31bbKJzrsKfMpo_grxuLl8LU"  # YouTube playlist
+binds = Alt_R, K, exec, xdg-open "https://keep.google.com/u/1/"                                              # Google Keep
+binds = Alt_R, V, exec, bash -c 'echo -n "pratik.ambastha2025@vitstudent.ac.in" | wl-copy; echo -n "pratik.ambastha2025@vitstudent.ac.in" | wl-copy -p; xdg-open "https://vitvellore312.examly.io/"' # Examly + VIT Email
+binds = Alt_R, C, exec, xdg-open "https://calendar.google.com/calendar/u/2/r/tasks"                          # Google Tasks
+binds = Alt_R, P, exec, xdg-open "https://www.papers.codechefvit.com/"                                       # Papers
+binds = Alt_R, 0, exec, xdg-open "https://fast.com"                                                          # Speed Test
+binds = Alt_R, N, exec, ~/.config/hypr/custom/scripts/toggle-buds.sh                                          # Toggle Nord Buds 3
+binds = Alt_R, SPACE, exec, kitty -e micro "/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala/「日常」/$(date +%d-%b-%y).md" # Daily note
+
+##! Region screenshot → vault note
+bind = Control_R, slash, exec, ~/.config/hypr/custom/scripts/region-shot.sh             # Region-shot capture
+bind = Control_R+SHIFT, slash, exec, ~/.config/hypr/custom/scripts/region-shot.sh --reselect # Region-shot re-select
+
+#!
+##! Navigation
+binds = Alt_L, TAB, workspace, previous                                                                          # Previous workspace
+
+##! Quick Type 
+binds = Alt_L, 1, exec, bash -c 'v=$(date +"[%d-%b]"); echo -n "$v" | wl-copy; echo -n "$v" | wl-copy -p'         # Date [01-Mar]
+binds = Alt_L, 2, exec, bash -c 'v=$(date +"[%-l.%M%P]"); echo -n "$v" | wl-copy; echo -n "$v" | wl-copy -p'     # Time [1.15am]
+
+##! Quick Send
+binds = Alt_L, T, exec, ~/.config/hypr/custom/scripts/telegram-send.sh                                         # Telegram quick send
+
+##! Apps
+binds = Alt_L, F, exec, ~/.config/hypr/custom/scripts/focus-mode.sh                                              # Focus Mode toggle
+bind = SUPER SHIFT, D, exec, ~/.config/hypr/custom/scripts/daylog.sh                                              # Daylog ritual (rofi prompts → habits.md + daynote)
+bind = SUPER, Z, exec, zen-browser                                                                            # Zen Browser
+binds = Alt_L, 5, exec, code                                                                                     # VS Code
+binds = Alt_L, D, exec, obsidian                                                                              # Obsidian
+binds = Alt_L, Z, global, quickshell:quickCapture                                                            # Quick Capture
+binds = Alt_L, SPACE, exec, fsearch                                                                              # FSearch
+
+##! Launchers
+bind = SUPER, R, exec, pkill rofi || rofi -show drun                                                             # App Browser
+bind = SUPER, X, exec, dolphin --new-window ~/scripts/quick-access    # Script Launcher
+unbind = SUPER, P
+bind = SUPER, P, exec, ~/.config/hypr/custom/scripts/cycle-power-profile.sh                                    # Cycle power profile
+
+##! Folders
+binds = Alt_R, D, exec, dolphin --new-window ~/Documents                                                        # Documents
+binds = Alt_L, X, exec, dolphin --new-window ~/Downloads                                                        # Downloads
+binds = Alt_L, GRAVE, exec, dolphin --new-window "/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala" # Obsidian vault
+binds = Alt_L, A, exec, xdg-open "/mnt/windows/Users/DELL/Downloads/Binder1.pdf"                                # Schedule PDF
+binds = Alt_L, S, exec, dolphin --new-window "/mnt/windows/Users/DELL/Pictures/Screenshots"                     # Screenshots
+binds = Alt_R, S, exec, dolphin --new-window ~/Captures                                                        # Captures
+binds = Alt_R, M, exec, ~/.local/bin/wifi-login.sh                                                           # N-VIT WiFi login
+# binds = Alt_R, L, exec, xdg-open "/mnt/windows/Users/DELL/Documents/Timeline.xlsx"                           # Timeline spreadsheet
+bind = SUPER, SPACE, global, quickshell:stickyNotes                                                         # Sticky Notes
+bind = Alt_R, L, exec, ~/.config/hypr/custom/scripts/launch-clocks.sh                                            # left tiled clocks
+
+##! Dolphin contextual
+bind = CTRL SHIFT, X, exec, ~/scripts/dolphin-new-md.sh                                                          # md creation
