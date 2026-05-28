@@ -22,3 +22,6 @@ export PATH="/home/pratik/.amp/bin:$PATH"
 export PATH="$PATH:/home/pratik/.lmstudio/bin"
 # End of LM Studio CLI section
 
+
+# Turso
+export PATH="$PATH:/home/pratik/.turso"

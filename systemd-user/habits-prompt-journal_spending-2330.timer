@@ -1,0 +1,11 @@
+[Unit]
+Description=Habit prompt: journal_spending @ 23:30
+
+[Timer]
+OnCalendar=*-*-* 23:30:00
+Persistent=false
+AccuracySec=30s
+Unit=habits-prompt@journal_spending_2330.service
+
+[Install]
+WantedBy=timers.target
