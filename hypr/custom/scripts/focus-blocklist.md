@@ -33,8 +33,6 @@
 ## Blocked Websites
 - x.com
 - www.x.com
-- reddit.com
-- www.reddit.com
 
 ## Blocked Terms
 
