@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Toggle the Plymouth boot splash (evangelion-ui) on/off.
+# Works by adding/removing `quiet splash` from the GRUB kernel cmdline.
+# Usage: eva-splash [on|off|toggle|status]
+set -euo pipefail
+
+GRUB=/etc/default/grub
+LINE=GRUB_CMDLINE_LINUX_DEFAULT
+
+is_on() { grep -E "^${LINE}=.*\bsplash\b" "$GRUB" >/dev/null; }
+
+regen() {
+  echo "Regenerating grub.cfg..."
+  sudo grub-mkconfig -o /boot/grub/grub.cfg >/dev/null
+  echo "Done. Change takes effect on next reboot."
+}
+
+turn_on() {
+  if is_on; then echo "Splash already ON."; return; fi
+  sudo sed -i "s/\(${LINE}=\"\)/\1quiet splash /" "$GRUB"
+  echo "Splash -> ON"
+  regen
+}
+
+turn_off() {
+  if ! is_on; then echo "Splash already OFF."; return; fi
+  # remove quiet+splash (any order) only from the cmdline line
+  sudo sed -i "/^${LINE}=/ s/\bquiet \b//g; /^${LINE}=/ s/\bsplash \b//g; /^${LINE}=/ s/ \bquiet\b//g; /^${LINE}=/ s/ \bsplash\b//g" "$GRUB"
+  echo "Splash -> OFF"
+  regen
+}
+
+case "${1:-status}" in
+  on)     turn_on ;;
+  off)    turn_off ;;
+  toggle) if is_on; then turn_off; else turn_on; fi ;;
+  status) if is_on; then echo "Splash is ON"; else echo "Splash is OFF"; fi
+          grep "^${LINE}=" "$GRUB" ;;
+  *) echo "Usage: eva-splash [on|off|toggle|status]"; exit 1 ;;
+esac

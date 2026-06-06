@@ -177,6 +177,7 @@ pipewire-jack
 pkgfile
 plasma-browser-integration
 plocate
+plymouth
 pokemon-colorscripts-git
 poppler-glib
 power-profiles-daemon
