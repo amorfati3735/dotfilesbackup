@@ -237,6 +237,7 @@ vicinae-bin
 visual-studio-code-bin
 vkbasalt
 vulkan-intel
+wayvnc
 webapp-manager
 webkit2gtk
 webkitgtk-6.0
