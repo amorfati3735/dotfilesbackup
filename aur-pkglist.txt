@@ -9,6 +9,7 @@ caelestia-meta
 caelestia-shell
 cheese
 cliwt
+cloudflare-warp-bin
 envycontrol
 eww
 fsearch

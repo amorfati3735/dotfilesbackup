@@ -33,6 +33,7 @@ cheese
 chezmoi
 clapper
 cliwt
+cloudflare-warp-bin
 cryptsetup
 device-mapper
 diffutils
