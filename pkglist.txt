@@ -243,6 +243,7 @@ webapp-manager
 webkit2gtk
 webkitgtk-6.0
 wev
+weylus-community-bin
 which
 wl-gammarelay-rs
 wlr-randr
@@ -259,6 +260,7 @@ xorg-xinit
 xorg-xinput
 xorg-xkill
 xorg-xrandr
+xournalpp
 xterm
 yay
 yewtube

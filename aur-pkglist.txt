@@ -56,6 +56,7 @@ vicinae-bin
 visual-studio-code-bin
 vkbasalt
 webkit2gtk
+weylus-community-bin
 wl-gammarelay-rs
 yewtube
 zen-browser-bin
