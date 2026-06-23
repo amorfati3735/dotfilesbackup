@@ -30,6 +30,7 @@ Singleton {
     property bool superReleaseMightTrigger: true
     property bool wallpaperSelectorOpen: false
     property bool workspaceShowNumbers: false
+    property bool vibecodeWidgetsEnabled: true
 
     onSidebarRightOpenChanged: {
         if (GlobalStates.sidebarRightOpen) {

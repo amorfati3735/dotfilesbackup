@@ -324,6 +324,8 @@ Item { // Bar content region
                 invertSide: Config?.options.bar.bottom
             }
 
+            FocusTimerPill {}
+
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true

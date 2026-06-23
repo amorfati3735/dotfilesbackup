@@ -209,6 +209,12 @@ Singleton {
                         property real x: 400
                         property real y: 100
                     }
+                    property JsonObject dayprogress: JsonObject {
+                        property bool enable: true
+                        property string placementStrategy: "free" // "free", "leastBusy", "mostBusy"
+                        property real x: 150
+                        property real y: 600
+                    }
                 }
                 property string wallpaperPath: ""
                 property string thumbnailPath: ""
@@ -528,14 +534,16 @@ Singleton {
                     property string style: "android" // Options: classic, android
                     property JsonObject android: JsonObject {
                         property int columns: 5
-                        property list<var> toggles: [
-                            { "size": 2, "type": "network" },
-                            { "size": 2, "type": "bluetooth"  },
-                            { "size": 1, "type": "idleInhibitor" },
-                            { "size": 1, "type": "mic" },
-                            { "size": 2, "type": "audio" },
-                            { "size": 2, "type": "nightLight" }
-                        ]
+                    property list<var> toggles: [
+                        { "size": 2, "type": "network" },
+                        { "size": 2, "type": "bluetooth"  },
+                        { "size": 1, "type": "idleInhibitor" },
+                        { "size": 1, "type": "dayProgress" },
+                        { "size": 1, "type": "mic" },
+                        { "size": 2, "type": "audio" },
+                        { "size": 2, "type": "nightLight" },
+                        { "size": 1, "type": "vibecodeWidgets" }
+                    ]
                     }
                 }
 
