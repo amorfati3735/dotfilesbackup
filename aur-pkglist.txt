@@ -52,6 +52,7 @@ tplay-git
 unimatrix-git
 upscayl-bin
 ventoy-bin
+vesktop-bin
 vicinae-bin
 visual-studio-code-bin
 vkbasalt

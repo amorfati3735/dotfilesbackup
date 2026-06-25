@@ -234,6 +234,7 @@ upscayl-bin
 usb_modeswitch
 usbutils
 ventoy-bin
+vesktop-bin
 vicinae-bin
 visual-studio-code-bin
 vkbasalt
