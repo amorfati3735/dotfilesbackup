@@ -9,7 +9,6 @@ caelestia-meta
 caelestia-shell
 cheese
 cliwt
-cloudflare-warp-bin
 envycontrol
 eww
 fsearch
@@ -48,6 +47,7 @@ quickshell-git
 reshade-shaders-git
 rofi-power-menu
 spotify
+sunshine-bin
 tplay-git
 unimatrix-git
 upscayl-bin

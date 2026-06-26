@@ -33,7 +33,6 @@ cheese
 chezmoi
 clapper
 cliwt
-cloudflare-warp-bin
 cryptsetup
 device-mapper
 diffutils
@@ -213,6 +212,7 @@ sof-firmware
 speedtest-cli
 spotify
 sudo
+sunshine-bin
 sysfsutils
 systemd-sysvcompat
 texinfo
