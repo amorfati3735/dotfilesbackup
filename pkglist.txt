@@ -133,6 +133,7 @@ lvm2
 man-db
 man-pages
 manga-tui
+materialgram-bin
 mdadm
 meld
 mesa-utils

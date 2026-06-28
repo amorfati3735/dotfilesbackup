@@ -33,6 +33,7 @@ illogical-impulse-widgets
 lmstudio-bin
 localsend-bin
 manga-tui
+materialgram-bin
 namida-bin
 onlyoffice-bin
 pcsx2-latest-bin
