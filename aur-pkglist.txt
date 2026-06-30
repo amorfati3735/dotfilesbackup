@@ -30,6 +30,7 @@ illogical-impulse-python
 illogical-impulse-screencapture
 illogical-impulse-toolkit
 illogical-impulse-widgets
+jdownloader2
 lmstudio-bin
 localsend-bin
 manga-tui

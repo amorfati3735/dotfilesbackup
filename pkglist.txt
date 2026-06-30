@@ -106,6 +106,7 @@ inxi
 iptables
 iwd
 jdk-openjdk
+jdownloader2
 jfsutils
 kamoso
 kate
