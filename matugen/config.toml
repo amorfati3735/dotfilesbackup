@@ -43,3 +43,7 @@ output_path = '~/.local/state/matugen/vscode-colors.json'
 
 [[config.scripts_on_change]]
 path = '~/.config/matugen/templates/vscode/apply-to-vscode.py'
+
+[templates.mpv]
+input_path = '~/.config/matugen/templates/mpv/colors.conf'
+output_path = '~/.config/mpv/mpv-colors.conf'
