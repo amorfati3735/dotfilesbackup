@@ -149,6 +149,7 @@ nano-syntax-highlighting
 ncdu
 ncspot
 neovim
+net-tools
 netctl
 networkmanager-openconnect
 networkmanager-openvpn
@@ -225,6 +226,7 @@ tlp
 toilet
 touchegg
 tplay-git
+traceroute
 ttf-bitstream-vera
 ttf-dejavu
 ttf-liberation
