@@ -25,6 +25,8 @@ Item { // Player instance
     property real maxVisualizerValue: 1000 // Max value in the data points
     property int visualizerSmoothing: 2 // Number of points to average for smoothing
     property real radius
+    property bool pinned: false
+    signal togglePin()
 
     property string displayedArtFilePath: root.downloaded ? Qt.resolvedUrl(artFilePath) : ""
 
@@ -304,6 +306,33 @@ Item { // Player instance
                             }
                         }
                     }
+                }
+            }
+        }
+
+        RippleButton {
+            id: pinButton
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 6
+            implicitWidth: 22
+            implicitHeight: 22
+            z: 10
+            buttonRadius: Appearance.rounding.verysmall
+            colBackground: "transparent"
+            colBackgroundHover: ColorUtils.transparentize(root.blendedColors.colSecondaryContainer, 0.5)
+            colRipple: root.blendedColors.colSecondaryContainerActive
+            downAction: () => root.togglePin()
+
+            contentItem: MaterialSymbol {
+                iconSize: 14
+                fill: root.pinned ? 1 : 0
+                horizontalAlignment: Text.AlignHCenter
+                color: root.pinned ? root.blendedColors.colPrimary : root.blendedColors.colSubtext
+                text: "keep"
+
+                Behavior on color {
+                    animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
                 }
             }
         }

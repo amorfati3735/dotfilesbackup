@@ -108,8 +108,20 @@ Scope {
                 item: playerColumnLayout
             }
 
+            property bool pinned: false
+
+            onPinnedChanged: {
+                if (pinned) {
+                    GlobalFocusGrab.removeDismissable(panelWindow);
+                } else {
+                    GlobalFocusGrab.addDismissable(panelWindow);
+                }
+            }
+
             Component.onCompleted: {
-                GlobalFocusGrab.addDismissable(panelWindow);
+                if (!pinned) {
+                    GlobalFocusGrab.addDismissable(panelWindow);
+                }
             }
             Component.onDestruction: {
                 GlobalFocusGrab.removeDismissable(panelWindow);
@@ -117,7 +129,9 @@ Scope {
             Connections {
                 target: GlobalFocusGrab
                 function onDismissed() {
-                    GlobalStates.mediaControlsOpen = false;
+                    if (!panelWindow.pinned) {
+                        GlobalStates.mediaControlsOpen = false;
+                    }
                 }
             }
 
@@ -133,10 +147,12 @@ Scope {
                     delegate: PlayerControl {
                         required property MprisPlayer modelData
                         player: modelData
+                        pinned: panelWindow.pinned
                         visualizerPoints: root.visualizerPoints
                         implicitWidth: root.widgetWidth
                         implicitHeight: root.widgetHeight
                         radius: root.popupRounding
+                        onTogglePin: panelWindow.pinned = !panelWindow.pinned
                     }
                 }
 
