@@ -35,6 +35,7 @@ chezmoi
 clapper
 cliwt
 cryptsetup
+dbeaver
 device-mapper
 diffutils
 dmidecode
@@ -135,6 +136,8 @@ lvm2
 man-db
 man-pages
 manga-tui
+mariadb
+mariadb-clients
 materialgram-bin
 mdadm
 meld
@@ -233,6 +236,7 @@ ttf-liberation
 ttf-opensans
 ufw
 unimatrix-git
+unixodbc
 unrar
 unzip
 upscayl-bin
