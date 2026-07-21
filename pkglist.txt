@@ -116,6 +116,7 @@ kdegraphics-thumbnailers
 kdenlive
 keyd
 kimageformats
+konsole
 less
 libappindicator
 libdvdcss
@@ -158,6 +159,7 @@ networkmanager-openconnect
 networkmanager-openvpn
 nfs-utils
 nilfs-utils
+nmap
 nodejs
 noto-fonts
 noto-fonts-cjk
