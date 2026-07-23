@@ -131,6 +131,7 @@ lmstudio-bin
 localsend-bin
 logrotate
 lolcat
+loupe
 lsb-release
 lsscsi
 lvm2
@@ -257,6 +258,7 @@ webkitgtk-6.0
 wev
 weylus-community-bin
 which
+wireshark-qt
 wl-gammarelay-rs
 wlr-randr
 wpa_supplicant
