@@ -4,9 +4,9 @@
 */
 
 /* Accents */
-@define-color accent_color #c1c6d6;
-@define-color accent_fg_color #2b303c;
-@define-color accent_bg_color #c1c6d6;
+@define-color accent_color #c0c6d5;
+@define-color accent_fg_color #2a313c;
+@define-color accent_bg_color #c0c6d5;
 @define-color destructive_bg_color #93000a;
 @define-color destructive_fg_color #ffdad6;
 @define-color destructive_color #ffb4ab;
@@ -32,7 +32,7 @@
 @define-color overview_bg_color #0e0e0f;
 @define-color overview_fg_color #e4e2e3;
 /* Popups */
-@define-color popover_bg_color #353436;
+@define-color popover_bg_color #353536;
 @define-color popover_fg_color #e4e2e3;
 @define-color dialog_bg_color #2a2a2b;
 @define-color dialog_fg_color #e4e2e3;
