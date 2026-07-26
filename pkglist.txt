@@ -103,6 +103,7 @@ illogical-impulse-toolkit
 illogical-impulse-widgets
 inetutils
 intel-gpu-tools
+intel-media-driver
 intel-ucode
 inxi
 iptables
