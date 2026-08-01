@@ -128,6 +128,7 @@ libwnck3
 linux
 linux-firmware
 linux-headers
+linux-lts
 lmstudio-bin
 localsend-bin
 logrotate
@@ -171,6 +172,7 @@ nss-mdns
 ntfs-3g
 ntp
 nvidia-open
+nvidia-open-lts
 nvidia-prime
 obsidian
 okular
