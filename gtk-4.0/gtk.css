@@ -17,12 +17,12 @@
     /* Base surfaces */
     @define-color window_bg_color #fcf8fa;
     @define-color window_fg_color #1b1b1d;
-    @define-color headerbar_bg_color #f0edee;
-    @define-color headerbar_backdrop_color #f0edee;
+    @define-color headerbar_bg_color #f0edef;
+    @define-color headerbar_backdrop_color #f0edef;
     @define-color headerbar_fg_color #1b1b1d;
-    @define-color card_bg_color #f0edee;
+    @define-color card_bg_color #f0edef;
     @define-color card_fg_color #1b1b1d;
-    @define-color sidebar_bg_color #f0edee;
+    @define-color sidebar_bg_color #f0edef;
     @define-color sidebar_fg_color #1b1b1d;
     @define-color secondary_sidebar_bg_color #f6f3f4;
     @define-color secondary_sidebar_backdrop_color #f6f3f4;
@@ -45,9 +45,9 @@
 @media (prefers-color-scheme: dark) {
 
     /* Accents */
-    @define-color accent_color #c1c6d6;
+    @define-color accent_color #c2c6d6;
     @define-color accent_fg_color #2b303c;
-    @define-color accent_bg_color #c1c6d6;
+    @define-color accent_bg_color #c2c6d6;
     @define-color destructive_bg_color #93000a;
     @define-color destructive_fg_color #ffdad6;
     @define-color destructive_color #ffb4ab;
