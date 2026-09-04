@@ -11,12 +11,20 @@ OFFSET=0
 
 mkdir -p "$DL_DIR"
 
+# Read URLs from curl's config input so the bot token is not exposed in
+# curl's command-line arguments.
+telegram_curl() {
+    local url="$1"
+    shift
+    curl "$@" --config <(printf 'url = "%s"\n' "$url")
+}
+
 download_file() {
     local file_id="$1"
     local filename="$2"
 
     local file_info
-    file_info=$(curl -s "${API}/getFile?file_id=${file_id}")
+    file_info=$(telegram_curl "${API}/getFile?file_id=${file_id}" -s)
     local file_path
     file_path=$(echo "$file_info" | jq -r '.result.file_path // empty')
 
@@ -30,13 +38,13 @@ download_file() {
             [[ "$base" == "$ext" ]] && ext=""
             dest="$DL_DIR/${base}_$(date +%s).${ext}"
         fi
-        curl -s "https://api.telegram.org/file/bot${TOKEN}/${file_path}" -o "$dest"
+        telegram_curl "https://api.telegram.org/file/bot${TOKEN}/${file_path}" -s -o "$dest"
         notify-send -a "Telegram" "📥 File received" "$filename → ~/Downloads/" -t 5000
     fi
 }
 
 while true; do
-    RESPONSE=$(curl -s --max-time 120 "${API}/getUpdates?offset=${OFFSET}&timeout=60" 2>/dev/null)
+    RESPONSE=$(telegram_curl "${API}/getUpdates?offset=${OFFSET}&timeout=60" -s --max-time 120 2>/dev/null)
 
     if [[ $? -ne 0 || -z "$RESPONSE" ]]; then
         sleep 5

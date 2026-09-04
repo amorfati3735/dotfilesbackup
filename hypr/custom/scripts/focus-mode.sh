@@ -15,7 +15,6 @@ random_wall() {
     pick=$(find "$dir" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \) 2>/dev/null | shuf -n1)
     echo "${pick:-$fallback}"
 }
-BONGOCAT_CMD="bongocat --config $HOME/.config/bongocat.conf"
 JOURNAL_LOOP="$HOME/.config/hypr/custom/scripts/focus-journal-loop.sh"
 DISTRACT_MONITOR="$HOME/.config/hypr/custom/scripts/focus-distract-monitor.sh"
 HOSTS_BLOCK="$HOME/.config/hypr/custom/scripts/focus-hosts-block.sh"
@@ -324,11 +323,6 @@ end_session() {
     nohup "$SWITCHWALL" "$(random_wall "$DECOMPRESS_WALL_DIR" "$HOME/Wallpapers/castlevania.png")" >/dev/null 2>&1 &
     disown
 
-    log "Relaunching bongocat..."
-    # Relaunch bongocat
-    nohup $BONGOCAT_CMD >/dev/null 2>&1 &
-    disown
-
     # Write done state (QML watcher detects content change reliably)
     echo '{"state":"done"}' > "$STATE_FILE"
 
@@ -362,10 +356,6 @@ abort_session() {
 
     log "Switching wallpaper to decompress..."
     nohup "$SWITCHWALL" "$(random_wall "$DECOMPRESS_WALL_DIR" "$HOME/Wallpapers/castlevania.png")" >/dev/null 2>&1 &
-    disown
-
-    log "Relaunching bongocat..."
-    nohup $BONGOCAT_CMD >/dev/null 2>&1 &
     disown
 
     echo '{"state":"done"}' > "$STATE_FILE"
@@ -406,10 +396,6 @@ start_session() {
     # Block distracting websites
     "$HOSTS_BLOCK" block &
     log "Blocking websites"
-
-    # Kill bongocat
-    pkill -f bongocat 2>/dev/null
-    log "Killed bongocat"
 
     # Switch wallpaper
     "$SWITCHWALL" "$(random_wall "$FOCUS_WALL_DIR" "$HOME/Wallpapers/focus.png")" >> "$LOG_FILE" 2>&1 &
