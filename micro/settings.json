@@ -1,5 +1,7 @@
 {
-    "autosave": 30,
+    "autosave": 0,
+    "colorscheme": "terminal",
+    "reload": "disabled",
     "softwrap": true,
     "wordwrap": true
 }

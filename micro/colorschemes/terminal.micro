@@ -1,0 +1,8 @@
+include "simple"
+
+# Keep Micro on the terminal's native background.
+color-link statusline "bold white"
+color-link statusline.inactive "brightblack"
+color-link tabbar "white"
+color-link tabbar.active "bold white"
+color-link divider "brightblack"

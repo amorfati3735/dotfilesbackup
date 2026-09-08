@@ -80,5 +80,5 @@ set -gx PATH $PATH /home/pratik/.lmstudio/bin
 # Android SDK (stored on Windows mount for space)
 set -gx ANDROID_HOME /mnt/windows/data/Android/Sdk
 set -gx ANDROID_SDK_ROOT /mnt/windows/data/Android/Sdk
-fish_add_path $ANDROID_HOME/platform-tools $ANDROID_HOME/tools/bin
+fish_add_path --path --append --move $ANDROID_HOME/platform-tools $ANDROID_HOME/tools/bin
 fish_add_path ~/.local/bin
