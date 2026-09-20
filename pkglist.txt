@@ -208,8 +208,10 @@ qbittorrent
 qdirstat-bin
 qdl
 qt5ct-kde
+qt6-quick3d
 qt6ct-kde
 quickshell-git
+raylib
 rclone
 rebuild-detector
 reflector
