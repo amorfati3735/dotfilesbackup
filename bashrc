@@ -25,3 +25,5 @@ export PATH="$PATH:/home/pratik/.lmstudio/bin"
 
 # Turso
 export PATH="$PATH:/home/pratik/.turso"
+
+export OPENCODE_ENABLE_EXA=true
