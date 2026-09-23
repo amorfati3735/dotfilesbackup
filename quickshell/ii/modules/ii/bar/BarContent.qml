@@ -326,6 +326,8 @@ Item { // Bar content region
 
             FocusTimerPill {}
 
+            FocusIndicator {}
+
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true

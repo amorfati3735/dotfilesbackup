@@ -64,9 +64,11 @@ do_journal_prompt() {
     end_time=$(jq -r '.end_time // 0' "$STATE_FILE" 2>/dev/null)
     now=$(date +%s)
     if (( now >= end_time )); then
-        log "Time's up, calling --end"
-        "$FOCUS_SCRIPT" --end
-        exit 0
+        log "Time's up, calling --expire"
+        "$FOCUS_SCRIPT" --expire
+        # If extended, keep looping (check_active exits when the session ends)
+        check_active
+        return
     fi
 
     # Prompt for journal entry (no rating)

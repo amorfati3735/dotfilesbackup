@@ -19,7 +19,7 @@
   Add a line under "## Blocked Apps" with format: `- ClassName`
   - The class name is the Hyprland window class (case-insensitive)
   - To find an app's class: run `hyprctl clients -j | jq '.[].class'` while the app is open
-  - Common examples: "pcsx2-qt" for PCSX2, "firefox" for Firefox, "kitty" for terminal
+  - Common examples: "pcsx2-qt" for PCSX2, "firefox" for Firefox, "discord" for Discord
   
   ## How to remove:
   Delete the line or comment it out with `<!-- -->`
@@ -28,9 +28,12 @@
   - Changes take effect on next focus session start
   - Websites are blocked via /etc/hosts (requires polkit auth on first session)
   - Apps are detected by the distraction monitor and trigger a nudge notification
+  - Prefer editing websites interactively: `focus-mode.sh --blocklist`
+    (Enter = add, Delete on a site = remove, Esc = done)
 -->
 
 ## Blocked Websites
+- youtube.com
 - x.com
 - www.x.com
 
@@ -38,5 +41,4 @@
 
 ## Blocked Apps
 - pcsx2-qt
-- kitty
 - antigravity

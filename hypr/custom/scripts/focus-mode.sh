@@ -5,8 +5,12 @@ LOG_FILE="/tmp/focus-mode.log"
 VAULT="/mnt/windows/Users/DELL/Dropbox/DropsyncFiles/lesser amygdala"
 DAILY_DIR="$VAULT/「日常」"
 SWITCHWALL="$HOME/.config/quickshell/ii/scripts/colors/switchwall.sh"
+SHELL_CONFIG_FILE="$HOME/.config/illogical-impulse/config.json"
 FOCUS_WALL_DIR="$HOME/Wallpapers/lock-in"
+FOCUS_WALL_FALLBACK="$FOCUS_WALL_DIR/focus.png"
+BLOCKLIST_FILE="$HOME/.config/hypr/custom/scripts/focus-blocklist.md"
 DECOMPRESS_WALL_DIR="$HOME/Wallpapers/decompress"
+DECOMPRESS_WALL_FALLBACK="$HOME/Wallpapers/castlevania.png"
 
 # Pick a random wallpaper from a directory, with fallback
 random_wall() {
@@ -15,6 +19,115 @@ random_wall() {
     pick=$(find "$dir" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \) 2>/dev/null | shuf -n1)
     echo "${pick:-$fallback}"
 }
+
+# Wallpaper currently set in the shell config (what the user had before a session)
+current_wallpaper() {
+    local path
+    path=$(jq -r '.background.wallpaperPath // empty' "$SHELL_CONFIG_FILE" 2>/dev/null)
+    [[ -n "$path" && -f "$path" ]] && echo "$path"
+}
+
+# Print the domains under "## Blocked Websites"
+get_blocked_websites() {
+    local file="${1:-$BLOCKLIST_FILE}"
+    [[ -f "$file" ]] || return 0
+    local in_section=false
+    while IFS= read -r line; do
+        if [[ "$line" == "## Blocked Websites" ]]; then
+            in_section=true
+            continue
+        fi
+        if [[ "$line" == "## "* ]] && $in_section; then
+            break
+        fi
+        if $in_section && [[ "$line" =~ ^-[[:space:]]+(.+)$ ]]; then
+            echo "${BASH_REMATCH[1]}" | tr -d ' '
+        fi
+    done < "$file"
+}
+
+# Normalize a user-typed domain: strip scheme/path/spaces, lowercase
+normalize_domain() {
+    printf '%s' "$1" | tr -d ' ' | tr '[:upper:]' '[:lower:]' | sed -E 's#^https?://##; s#/.*$##'
+}
+
+# Add a single domain to "## Blocked Websites" (deduped)
+add_blocked_website() {
+    local file="$BLOCKLIST_FILE"
+    local site
+    site=$(normalize_domain "$1")
+    [[ -z "$site" ]] && return 1
+
+    local domains
+    domains=$(get_blocked_websites "$file")
+    if printf '%s\n' "$domains" | grep -qxF "$site"; then
+        notify-send -a "Focus Mode" "Already blocked" "$site is already on the list."
+        return 1
+    fi
+
+    if grep -q '^## Blocked Websites' "$file" 2>/dev/null; then
+        awk -v site="$site" '
+            { print }
+            $0 == "## Blocked Websites" && !done { print "- " site; done = 1 }
+        ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+    else
+        printf '\n## Blocked Websites\n- %s\n' "$site" >> "$file"
+    fi
+
+    log "Added to blocklist: $site"
+    notify-send -a "Focus Mode" "Blocklist updated" "$site will be blocked this session."
+}
+
+# Remove a domain from "## Blocked Websites" (section-scoped, whitespace/case tolerant)
+remove_blocked_website() {
+    local file="$BLOCKLIST_FILE"
+    local site
+    site=$(normalize_domain "$1")
+    [[ -z "$site" ]] && return 1
+
+    awk -v site="$site" '
+        /^## / { in_sec = ($0 == "## Blocked Websites") }
+        in_sec {
+            line = $0
+            sub(/^-[[:space:]]+/, "", line)
+            gsub(/[[:space:]]/, "", line)
+            if (tolower(line) == site) next
+        }
+        { print }
+    ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+    log "Removed from blocklist: $site"
+    notify-send -a "Focus Mode" "Blocklist updated" "$site removed."
+}
+
+# Interactive blocklist editor: type a domain + Enter to add, select one + Delete to
+# remove, Esc to finish. Loops so multiple edits can be made in a single pass.
+edit_blocklist() {
+    while true; do
+        local domains
+        domains=$(get_blocked_websites "$BLOCKLIST_FILE")
+
+        local mesg
+        if [[ -n "$domains" ]]; then
+            mesg="Enter = add  ·  Delete on a site = remove  ·  Esc = done"
+        else
+            mesg="Type a domain + Enter to add  ·  Esc = done"
+        fi
+
+        local out rc
+        out=$({ [[ -n "$domains" ]] && printf '%s\n' "$domains"; } | \
+            focus_rofi "Websites to block" "type a domain + Enter" "list" \
+                -mesg "$mesg" -kb-custom-1 Delete)
+        rc=$?
+
+        case "$rc" in
+            1) break ;;                                             # Esc / cancel
+            10) [[ -n "$out" ]] && remove_blocked_website "$out" ;; # Delete pressed
+            0) [[ -n "$out" ]] && add_blocked_website "$out" ;;     # Enter accepted
+        esac
+    done
+}
+
 JOURNAL_LOOP="$HOME/.config/hypr/custom/scripts/focus-journal-loop.sh"
 DISTRACT_MONITOR="$HOME/.config/hypr/custom/scripts/focus-distract-monitor.sh"
 HOSTS_BLOCK="$HOME/.config/hypr/custom/scripts/focus-hosts-block.sh"
@@ -69,8 +182,29 @@ update_state() {
     if [[ -f "$STATE_FILE" ]]; then
         local tmp
         tmp=$(mktemp)
-        jq "$1" "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
+        if jq "$@" "$STATE_FILE" > "$tmp"; then
+            mv "$tmp" "$STATE_FILE"
+        else
+            rm -f "$tmp"
+        fi
     fi
+}
+
+# Restore the wallpaper the user had before the session (falls back to a
+# random decompress wallpaper only if the previous path is gone).
+restore_wallpaper() {
+    local prev
+    prev=$(read_state '.prev_wallpaper // empty')
+    if [[ -n "$prev" && -f "$prev" ]]; then
+        log "Restoring previous wallpaper: $prev"
+        nohup "$SWITCHWALL" "$prev" >> "$LOG_FILE" 2>&1 &
+    else
+        local pick
+        pick=$(random_wall "$DECOMPRESS_WALL_DIR" "$DECOMPRESS_WALL_FALLBACK")
+        log "Previous wallpaper unavailable, using decompress pick: $pick"
+        nohup "$SWITCHWALL" "$pick" >> "$LOG_FILE" 2>&1 &
+    fi
+    disown
 }
 
 # --- Time parsing (robust: 10.52pm, 10.52, 1052, 10:52pm, 10:52, etc.) ---
@@ -205,8 +339,24 @@ start_end_timer() {
     local wait_secs=$(( end_time - now ))
     (( wait_secs < 1 )) && wait_secs=1
 
-    # Use setsid to fully detach the timer from this process group
-    setsid bash -c "sleep $wait_secs; '$SELF' --end" >> "$LOG_FILE" 2>&1 &
+    # Poll-based, self-cancelling timer. Avoids `setsid` (which forks, making the
+    # recorded PID fake) and avoids group-killing our own process group when the
+    # timer itself triggers --expire. It exits on its own once the session is no
+    # longer active, and `exec`s --expire so $$ == timer_pid is detectable in stop.
+    nohup bash -c "
+        end=$end_time
+        while true; do
+            sleep 5
+            st=\$(jq -r '.state // empty' '$STATE_FILE' 2>/dev/null)
+            case \"\$st\" in
+                active) ;;
+                *) exit 0 ;;
+            esac
+            if (( \$(date +%s) >= end )); then
+                exec '$SELF' --expire
+            fi
+        done
+    " >> "$LOG_FILE" 2>&1 &
     local pid=$!
     disown "$pid" 2>/dev/null
     update_state ".timer_pid = $pid"
@@ -246,16 +396,72 @@ stop_distract_monitor() {
 stop_end_timer() {
     local pid
     pid=$(read_state '.timer_pid // 0')
-    if [[ "$pid" -gt 0 ]]; then
-        kill -- -"$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true
-        pkill -P "$pid" 2>/dev/null || true
+    # When the timer itself invoked --expire, its PID equals ours: nothing to kill.
+    if [[ "$pid" -gt 0 && "$pid" != "$$" ]] && kill -0 "$pid" 2>/dev/null; then
+        pkill -TERM -P "$pid" 2>/dev/null || true   # the sleeping child
+        kill "$pid" 2>/dev/null || true
     fi
     log "Stopped end timer"
+}
+
+# --- Expiry (offer to extend before ending) ---
+
+expire_session() {
+    # Single-flight, so the timer and journal loop can't both prompt at once
+    exec 7>>"/tmp/focus-mode.expire.lock"
+    if ! flock -n 7; then
+        log "expire already in progress, skipping"
+        return 0
+    fi
+
+    local name end_time now
+    name=$(read_state '.session_name')
+    end_time=$(read_state '.end_time // 0')
+    now=$(date +%s)
+
+    # Ignore early/spurious calls
+    if (( now < end_time - 5 )); then
+        log "expire called early (now=$now end=$end_time), ignoring"
+        return 0
+    fi
+
+    local choice
+    choice=$(printf '+15m\n+30m\nEnd session' | focus_rofi "Time's up ⏰" "${name}" "list")
+
+    case "$choice" in
+        "+15m"|"+30m")
+            local add=900
+            [[ "$choice" == "+30m" ]] && add=1800
+            local new_end=$(( end_time + add ))
+            update_state --argjson e "$new_end" --argjson t "$now" \
+                '.end_time = $e | .journal += [{"type":"extend","time":$t}]'
+
+            local daily_file time_str
+            daily_file=$(get_daily_note)
+            time_str=$(date '+%-I:%M%P')
+            echo "- ⏭ **${time_str}** extended ${choice}" >> "$daily_file"
+
+            start_end_timer
+            notify-send -a "Focus Mode" "Extended ${choice}" "New end: $(format_time "$new_end")."
+            log "Extended by ${add}s, new end $new_end"
+            ;;
+        *)
+            log "No extension chosen; ending session"
+            end_session
+            ;;
+    esac
 }
 
 # --- End session (the critical path) ---
 
 end_session() {
+    # Guard against concurrent ends (e.g. timer + manual end)
+    exec 8>"/tmp/focus-mode.end.lock"
+    if ! flock -n 8; then
+        log "end_session already in progress, skipping"
+        return 0
+    fi
+
     log "=== END SESSION ==="
     stop_journal_loop || true
     stop_end_timer || true
@@ -291,7 +497,8 @@ end_session() {
 
         local timestamp_j
         timestamp_j=$(date +%s)
-        update_state ".journal += [{\"type\": \"entry\", \"time\": $timestamp_j, \"entry\": \"$final_entry\"}]"
+        update_state --argjson t "$timestamp_j" --arg e "$final_entry" \
+            '.journal += [{"type": "entry", "time": $t, "entry": $e}]'
     fi
 
     # Count journal entries
@@ -319,9 +526,7 @@ end_session() {
     "$HOSTS_BLOCK" unblock &
     log "Unblocking websites"
 
-    log "Switching wallpaper to decompress..."
-    nohup "$SWITCHWALL" "$(random_wall "$DECOMPRESS_WALL_DIR" "$HOME/Wallpapers/castlevania.png")" >/dev/null 2>&1 &
-    disown
+    restore_wallpaper
 
     # Write done state (QML watcher detects content change reliably)
     echo '{"state":"done"}' > "$STATE_FILE"
@@ -332,6 +537,12 @@ end_session() {
 }
 
 abort_session() {
+    exec 8>"/tmp/focus-mode.end.lock"
+    if ! flock -n 8; then
+        log "abort_session already in progress, skipping"
+        return 0
+    fi
+
     log "=== ABORT SESSION ==="
     stop_journal_loop || true
     stop_end_timer || true
@@ -354,9 +565,8 @@ abort_session() {
     "$HOSTS_BLOCK" unblock &
     log "Unblocking websites"
 
-    log "Switching wallpaper to decompress..."
-    nohup "$SWITCHWALL" "$(random_wall "$DECOMPRESS_WALL_DIR" "$HOME/Wallpapers/castlevania.png")" >/dev/null 2>&1 &
-    disown
+    log "Restoring wallpaper..."
+    restore_wallpaper
 
     echo '{"state":"done"}' > "$STATE_FILE"
 
@@ -376,6 +586,9 @@ start_session() {
     phone_check=$(focus_rofi "Phone down?" "yes" "input")
     [[ "${phone_check,,}" != "yes" ]] && exit 0
 
+    # Review / edit the website blocklist for this session (add or remove)
+    edit_blocklist
+
     local end_input
     end_input=$(focus_rofi "Until when?" "e.g. 12am, 11.30, 1am" "input")
     [[ -z "$end_input" ]] && exit 0
@@ -393,18 +606,23 @@ start_session() {
     local now
     now=$(date +%s)
 
+    # Remember the wallpaper to restore when the session ends
+    local prev_wall
+    prev_wall=$(current_wallpaper)
+
     # Block distracting websites
     "$HOSTS_BLOCK" block &
     log "Blocking websites"
 
     # Switch wallpaper
-    "$SWITCHWALL" "$(random_wall "$FOCUS_WALL_DIR" "$HOME/Wallpapers/focus.png")" >> "$LOG_FILE" 2>&1 &
-    log "Switching wallpaper to lock-in"
+    "$SWITCHWALL" "$(random_wall "$FOCUS_WALL_DIR" "$FOCUS_WALL_FALLBACK")" >> "$LOG_FILE" 2>&1 &
+    log "Switching wallpaper to lock-in (will restore: ${prev_wall:-<none>})"
 
     # Write state file
     jq -n \
         --arg state "active" \
         --arg name "$session_name" \
+        --arg prev "$prev_wall" \
         --argjson start "$now" \
         --argjson end "$end_epoch" \
         '{
@@ -415,6 +633,7 @@ start_session() {
             paused: false,
             pause_start: 0,
             total_pause_seconds: 0,
+            prev_wallpaper: $prev,
             journal: [],
             journal_loop_pid: 0,
             timer_pid: 0
@@ -512,6 +731,24 @@ check_timer() {
 
 if [[ "$1" == "--check-timer" ]]; then
     check_timer
+    exit 0
+fi
+
+if [[ "$1" == "--blocklist" ]]; then
+    edit_blocklist
+    exit 0
+fi
+
+if [[ "$1" == "--expire" ]]; then
+    log "Received --expire signal"
+    if [[ -f "$STATE_FILE" ]]; then
+        st=$(read_state '.state')
+        if [[ "$st" == "active" || "$st" == "paused" ]]; then
+            expire_session
+        else
+            log "State is '$st', not expiring"
+        fi
+    fi
     exit 0
 fi
 

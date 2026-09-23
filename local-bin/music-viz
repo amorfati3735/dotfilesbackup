@@ -1,0 +1,329 @@
+#!/usr/bin/env python3
+"""
+music-viz — a terminal take on the quickshell bar's media visualizer.
+
+The bar spawns `cava` (raw ascii, mode=waves, heavy noise reduction) and draws
+the samples as a smoothed, filled wave with a blur applied. Terminals can't
+blur, so this approximates it with a soft vertical gradient + spatial/temporal
+smoothing, tints the wave with the current track's average album-art colour,
+and shows a blurred album-art strip (chafa) above it.
+
+Ctrl-C to quit.
+
+Only standard library + cava/playerctl/chafa/magick (all already installed).
+"""
+
+import os
+import re
+import sys
+import shutil
+import signal
+import subprocess
+import tempfile
+import time
+
+CAVA_SRC = os.path.expanduser(
+    "~/.config/quickshell/ii/scripts/cava/raw_output_config.txt")
+COLORS_FILE = os.path.expanduser(
+    "~/.local/state/quickshell/user/generated/material_colors.scss")
+
+FPS = 30                 # render cap (cava runs at 60)
+BLEND = 0.45             # temporal smoothing (higher = snappier)
+GRAD_STEPS = 24          # gradient quantisation for fewer escapes
+FALLBACK_ACCENT = (137, 213, 202)
+
+ESC = "\x1b["
+HIDE, SHOW = ESC + "?25l", ESC + "?25h"
+
+
+# ---------- colour helpers -------------------------------------------------
+
+def hex_to_rgb(h):
+    h = h.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def get_theme_primary():
+    try:
+        with open(COLORS_FILE) as f:
+            for line in f:
+                m = re.match(r"\$primary:\s*(#[0-9a-fA-F]{6})", line.strip())
+                if m:
+                    return hex_to_rgb(m.group(1))
+    except OSError:
+        pass
+    return FALLBACK_ACCENT
+
+
+def fg(rgb):
+    return f"{ESC}38;2;{rgb[0]};{rgb[1]};{rgb[2]}m"
+
+
+# ---------- media / art ----------------------------------------------------
+
+def run(cmd, **kw):
+    try:
+        return subprocess.check_output(cmd, stderr=subprocess.DEVNULL,
+                                       text=True, timeout=6, **kw)
+    except Exception:
+        return ""
+
+
+def player_info():
+    title = run(["playerctl", "metadata", "--format", "{{title}}"]).strip()
+    artist = run(["playerctl", "metadata", "--format", "{{artist}}"]).strip()
+    art = run(["playerctl", "metadata", "--format", "{{mpris:artUrl}}"]).strip()
+    status = run(["playerctl", "status"]).strip()
+    if art.startswith("file://"):
+        art = art[len("file://"):]
+    if not os.path.isfile(art):
+        art = ""
+    return title, artist, art, status
+
+
+def art_accent(art, fallback):
+    """Average colour of the album art (the 'tint' of the visualization)."""
+    if not art:
+        return fallback
+    out = run(["magick", art, "-resize", "1x1", "-colorspace", "sRGB", "txt:-"])
+    m = re.search(r"#([0-9a-fA-F]{6})", out)
+    return hex_to_rgb(m.group(1)) if m else fallback
+
+
+def render_banner(art, width, rows, accent):
+    """Blurred album-art strip via chafa. Returns ANSI text, or ''."""
+    if not art or rows < 2 or width < 8:
+        return ""
+    try:
+        img = subprocess.check_output(
+            ["magick", art,
+             "-resize", f"{width}x{rows * 2}^", "-gravity", "center",
+             "-extent", f"{width}x{rows * 2}",
+             "-blur", "0x6", "-modulate", "60", "png:-"],
+            stderr=subprocess.DEVNULL, timeout=15)
+        txt = subprocess.check_output(
+            ["chafa", "-f", "symbols", "--symbols", "block",
+             "--colors", "256", "--work", "4",
+             "--size", f"{width}x{rows * 2}", "-"],
+            input=img, stderr=subprocess.DEVNULL, timeout=15).decode(
+                "utf-8", "replace")
+        # chafa toggles the cursor itself; we manage it
+        txt = txt.replace(HIDE, "").replace(SHOW, "")
+        return txt.rstrip("\n")
+    except Exception:
+        return ""
+
+
+# ---------- cava -----------------------------------------------------------
+
+CAVA_TMPL = """[general]
+mode = waves
+framerate = 60
+autosens = 1
+bars = {bars}
+
+[output]
+method = raw
+raw_target = /dev/stdout
+data_format = ascii
+channels = mono
+mono_option = average
+
+[smoothing]
+noise_reduction = 20
+"""
+
+
+def start_cava(bars):
+    path = os.path.join(tempfile.gettempdir(), f"music-viz-{os.getpid()}.conf")
+    with open(path, "w") as f:
+        f.write(CAVA_TMPL.format(bars=max(16, min(300, bars))))
+    proc = subprocess.Popen(["cava", "-p", path], stdout=subprocess.PIPE,
+                            stderr=subprocess.DEVNULL, text=True, bufsize=1)
+    return proc, path
+
+
+# ---------- renderer -------------------------------------------------------
+
+class Viz:
+    def __init__(self, accent):
+        self.accent = accent
+        self.dim = tuple(int(c * 0.30) for c in accent)
+        self.vals = []
+        self.peak = 200.0
+        self.art = ""
+        self.title = ""
+        self.artist = ""
+        self.status = ""
+        self.paused = False
+        self.art_rc = None       # (width, rows) the banner was rendered at
+        self.banner = ""
+
+    def gradient(self, f):
+        f = max(0.0, min(1.0, f)) ** 0.8
+        base, top = self.dim, self.accent
+        rgb = tuple(int(base[i] + (top[i] - base[i]) * f) for i in range(3))
+        step = GRAD_STEPS
+        rgb = tuple(min(255, int(round(v / 255 * step) * 255 / step))
+                    for v in rgb)
+        return rgb
+
+    def refresh_media(self):
+        title, artist, art, status = player_info()
+        self.title, self.artist, self.status = title, artist, status
+        if art != self.art:
+            self.art = art
+            self.accent = art_accent(art, get_theme_primary())
+            self.dim = tuple(int(c * 0.30) for c in self.accent)
+            self.art_rc = None   # force banner re-render
+
+    def frame(self, text):
+        if not text:
+            return
+        vals = [float(x) for x in text.split(";") if x.strip() != ""]
+        if not vals:
+            return
+        cols, _ = shutil.get_terminal_size((100, 30))
+        n = len(vals)
+        # resample to terminal width
+        target = [vals[min(n - 1, int(c * n / max(1, cols)))] for c in range(cols)]
+        if len(self.vals) != cols:
+            self.vals = target[:]
+        for c in range(cols):
+            self.vals[c] += (target[c] - self.vals[c]) * BLEND
+        # spatial blur (window 3) — reads as softness
+        sm = self.vals
+        self.vals = [
+            (sm[max(0, c - 1)] + sm[c] + sm[min(cols - 1, c + 1)]) / 3.0
+            for c in range(cols)]
+        m = max(self.vals) if self.vals else 0.0
+        self.peak = max(self.peak * 0.98, m * 1.05, 200.0)
+
+    def draw(self, out):
+        cols, rows = shutil.get_terminal_size((100, 30))
+        cols, rows = max(20, cols), max(8, rows)
+
+        banner_rows = 0
+        if self.art and rows >= 16:
+            banner_rows = min(5, rows // 4)
+        header_rows = banner_rows + 1
+
+        if self.art and self.art_rc != (cols, banner_rows):
+            self.banner = render_banner(self.art, cols, banner_rows, self.accent)
+            self.art_rc = (cols, banner_rows)
+
+        buf = [ESC + "H"]
+        # banner
+        if banner_rows and self.banner:
+            buf.append(self.banner)
+            buf.append("\n")
+        elif banner_rows:
+            buf.append("\n" * banner_rows)
+        # title
+        mark = "⏸" if self.paused or self.status != "Playing" else "▶"
+        label = " — ".join([p for p in (self.artist, self.title) if p]) \
+            or "system audio"
+        room = cols - 4
+        if len(label) > room:
+            label = label[:room - 1] + "…"
+        buf.append(fg(self.accent) + " " + mark + " " + ESC + "1m" + label
+                   + ESC + "0m" + ESC + "K\n")
+
+        region = rows - header_rows
+        total_sub = region * 2
+        heights = [int(min(1.0, v / self.peak) * total_sub + 0.5)
+                   for v in self.vals]
+        heights += [0] * (cols - len(heights))
+        heights = heights[:cols]
+
+        for r in range(region):
+            line = []
+            cur = None
+            for c in range(cols):
+                h = heights[c]
+                up = total_sub - 1 - r * 2
+                lo = total_sub - 2 - r * 2
+                up_f, lo_f = up < h, lo < h
+                if not up_f and not lo_f:
+                    ch = " "
+                elif up_f and lo_f:
+                    ch = "█"
+                elif up_f:
+                    ch = "▀"
+                else:
+                    ch = "▄"
+                if up_f or lo_f:
+                    frac = ((lo if lo_f else up) + 0.5) / max(h, 1)
+                    col = self.gradient(frac)
+                    if col != cur:
+                        line.append(fg(col))
+                        cur = col
+                    line.append(ch)
+                else:
+                    if cur is not None:
+                        line.append(ESC + "0m")
+                        cur = None
+                    line.append(ch)
+            if cur is not None:
+                line.append(ESC + "0m")
+            buf.append("".join(line) + ESC + "K")
+            if r < region - 1:
+                buf.append("\n")
+        out.write("".join(buf))
+        out.flush()
+
+
+def main():
+    viz = Viz(get_theme_primary())
+    viz.refresh_media()
+
+    cols, _ = shutil.get_terminal_size((100, 30))
+    cava, conf = start_cava(cols)
+    time.sleep(0.2)
+    if cava.poll() is not None:      # cava bailed (no audio server, bad config, ...)
+        try:
+            os.unlink(conf)
+        except OSError:
+            pass
+        sys.stderr.write("music-viz: cava could not start\n")
+        sys.exit(1)
+
+    def cleanup(*_):
+        try:
+            cava.terminate()
+        except Exception:
+            pass
+        try:
+            os.unlink(conf)
+        except OSError:
+            pass
+        sys.stdout.write(ESC + "0m" + SHOW + "\n")
+        sys.stdout.flush()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, cleanup)
+    signal.signal(signal.SIGTERM, cleanup)
+
+    out = sys.stdout
+    out.write(ESC + "2J" + HIDE)
+    last_media = 0.0
+    interval = 1.0 / FPS
+    try:
+        for raw in cava.stdout:
+            now = time.time()
+            if now - last_media > 2.0:
+                viz.refresh_media()
+                last_media = now
+            viz.frame(raw)
+            viz.draw(out)
+            dt = interval - (time.time() - now)
+            if dt > 0:
+                time.sleep(dt)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        cleanup()
+
+
+if __name__ == "__main__":
+    main()
