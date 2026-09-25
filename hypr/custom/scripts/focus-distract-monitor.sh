@@ -1,6 +1,8 @@
 #!/bin/bash
 # Distraction speed bump monitor for focus mode
 # Polls hyprctl for distracting windows, sends nudge + logs to daily note
+# shellcheck source=/dev/null
+. "$HOME/.local/bin/hypr-dispatch.sh"
 
 STATE_FILE="/tmp/focus-mode.json"
 LOG_FILE="/tmp/focus-mode.log"
@@ -131,7 +133,7 @@ while true; do
             log "Blocked term '$term' matched: $wclass ($wtitle) — closing"
 
             # Close the window
-            hyprctl dispatch closewindow "address:$addr" > /dev/null 2>&1
+            hd_close_window "address:$addr" > /dev/null 2>&1
 
             notify-send -a "Focus Mode" -u normal \
                 "🚫 Blocked: $term" \

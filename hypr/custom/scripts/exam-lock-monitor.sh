@@ -4,6 +4,8 @@
 # a term from focus-blocklist.md "## Blocked Terms".
 #
 # Reuses the same blocklist as focus-mode so there is one source of truth.
+# shellcheck source=/dev/null
+. "$HOME/.local/bin/hypr-dispatch.sh"
 
 BLOCKLIST="$HOME/.config/hypr/custom/scripts/focus-blocklist.md"
 LOG_FILE="/tmp/exam-lock.log"
@@ -61,7 +63,7 @@ while true; do
             wtitle=$(echo "$match" | cut -d'|' -f3)
 
             log "Closed [$wclass] '$wtitle' (matched: $term)"
-            hyprctl dispatch closewindow "address:$addr" > /dev/null 2>&1
+            hd_close_window "address:$addr" > /dev/null 2>&1
             notify-send -a "Exam Lock" -u normal \
                 "🔒 Blocked: $term" \
                 "Closed: $wtitle"

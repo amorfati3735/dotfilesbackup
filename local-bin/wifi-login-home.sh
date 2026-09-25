@@ -1,13 +1,16 @@
 #!/bin/bash
 # Home WiFi auto-connect: try JioFiber-1 first, fall back to phone hotspot.
 
+# shellcheck source=/dev/null
+. "$HOME/.local/bin/hypr-dispatch.sh"
+
 PRIMARY="JioFiber-1"
 HOTSPOT="OnePlus Nord CE3"
 
 refresh_zen() {
   if hyprctl clients -j | jq -e '.[] | select(.class == "zen" or .class == "zen-browser")' &>/dev/null; then
     sleep 0.5
-    hyprctl dispatch sendshortcut "CTRL, R, class:^(zen|zen-browser)$"
+    hd_send_shortcut "CTRL" "R" "class:^(zen|zen-browser)$"
   fi
 }
 

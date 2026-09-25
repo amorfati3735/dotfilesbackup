@@ -8,6 +8,9 @@ fi
 
 source ~/.env_secrets
 
+# shellcheck source=/dev/null
+. "$HOME/.local/bin/hypr-dispatch.sh"
+
 HOTSPOT="OnePlus Nord CE3"
 
 try_login() {
@@ -20,7 +23,7 @@ try_login() {
 refresh_zen() {
   if hyprctl clients -j | jq -e '.[] | select(.class == "zen" or .class == "zen-browser")' &>/dev/null; then
     sleep 0.5
-    hyprctl dispatch sendshortcut "CTRL, R, class:^(zen|zen-browser)$"
+    hd_send_shortcut "CTRL" "R" "class:^(zen|zen-browser)$"
   fi
 }
 

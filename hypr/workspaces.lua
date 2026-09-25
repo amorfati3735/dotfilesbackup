@@ -1,0 +1,3 @@
+-- Ported from workspaces.conf (nwg-displays target) — 2026-09-24 (pre-Lua migration)
+-- This file is to be overwritten by nwg-displays if you choose to use it.
+-- nwg-displays: https://github.com/nwg-piotr/nwg-displays

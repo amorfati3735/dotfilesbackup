@@ -1,15 +1,17 @@
 #!/bin/bash
 # Switch eDP-1 refresh rate based on power profile:
 #   power-saver → 60Hz, otherwise → 120Hz
+# shellcheck source=/dev/null
+. "$HOME/.local/bin/hypr-dispatch.sh"
 
 MONITOR="eDP-1"
 
 set_refresh() {
     local profile="$1"
     if [[ "$profile" == "power-saver" ]]; then
-        hyprctl keyword monitor "$MONITOR,1920x1080@60,0x0,1"
+        hd_monitor_set "$MONITOR" "1920x1080@60" "0x0" 1
     else
-        hyprctl keyword monitor "$MONITOR,1920x1080@120,0x0,1"
+        hd_monitor_set "$MONITOR" "1920x1080@120" "0x0" 1
     fi
 }
 

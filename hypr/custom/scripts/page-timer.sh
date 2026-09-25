@@ -10,6 +10,8 @@ FILE="$VAULT/sessions.md"
 PID_FILE="/tmp/page-timer.pid"
 
 source "$HOME/.config/hypr/custom/scripts/focus-rofi-theme.sh"
+# shellcheck source=/dev/null
+. "$HOME/.local/bin/hypr-dispatch.sh"
 
 # --- Toggle: kill existing instance ---
 if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
@@ -93,9 +95,8 @@ do_comment() {
 }
 
 unbind_keys() {
-    hyprctl --batch "\
-        keyword unbind ,grave;\
-        keyword unbind SHIFT,grave" >/dev/null 2>&1
+    hd_unbind ",grave"
+    hd_unbind "SHIFT,grave"
 }
 
 do_end() {
@@ -115,9 +116,8 @@ do_end() {
 echo $$ > "$PID_FILE"
 
 # Bind keys (user is handwriting on paper, not typing)
-hyprctl --batch "\
-    keyword bind ,grave,exec,kill -USR1 $$;\
-    keyword bind SHIFT,grave,exec,kill -USR2 $$" >/dev/null 2>&1
+hd_bind ",grave" "kill -USR1 $$"
+hd_bind "SHIFT,grave" "kill -USR2 $$"
 
 # Signals
 trap 'do_tick' USR1
