@@ -44,7 +44,11 @@ LockScreen {
             if (GlobalStates.screenLocked) {
                 // Lock: save workspace per monitor and move all to temp workspace in one batch
                 var next = {}
-                var batch = "keyword animation workspaces,1,7,menu_decel,slidevert; "
+                // NOTE: the old `keyword animation workspaces,...` prefix was a hyprlang
+                // `hyprctl --batch` command. This string is run by bash and `keyword`
+                // cannot work with the Lua config manager, so the workspace moves below
+                // just use the animations already defined in the Hyprland config.
+                var batch = "";
                 for (var i = 0; i < Quickshell.screens.length; ++i) {
                     var mon = Quickshell.screens[i].name
                     var mData = HyprlandData.monitors.find(m => m.name === mon)

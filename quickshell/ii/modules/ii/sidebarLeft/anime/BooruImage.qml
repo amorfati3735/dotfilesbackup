@@ -147,9 +147,11 @@ Button {
                             buttonText: Translation.tr("Open file link")
                             onClicked: {
                                 root.showActions = false
-                                Hyprland.dispatch("hl.config({cursor = {no_warps = true}})")
+                                // NOTE: the old `Hyprland.dispatch("hl.config(...)")` cursor-warp
+                                // suppression was removed — hl.config is not a dispatcher, so those
+                                // calls errored out. cursor:no_warps is enabled by default anyway.
                                 Qt.openUrlExternally(root.imageData.file_url)
-                                Hyprland.dispatch("hl.config({cursor = {no_warps = false}})")
+                                // (warp suppression on open removed — see above)
                             }
                         }
                         MenuButton {
@@ -160,9 +162,11 @@ Button {
                             enabled: root.imageData.source && root.imageData.source.length > 0
                             onClicked: {
                                 root.showActions = false
-                                Hyprland.dispatch("hl.config({cursor = {no_warps = true}})")
+                                // NOTE: the old `Hyprland.dispatch("hl.config(...)")` cursor-warp
+                                // suppression was removed — hl.config is not a dispatcher, so those
+                                // calls errored out. cursor:no_warps is enabled by default anyway.
                                 Qt.openUrlExternally(root.imageData.source)
-                                Hyprland.dispatch("hl.config({cursor = {no_warps = false}})")
+                                // (warp suppression on open removed — see above)
                             }
                         }
                         MenuButton {
