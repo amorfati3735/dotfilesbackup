@@ -168,11 +168,11 @@ focus_rofi() {
             -theme "$theme_file" \
             -theme-str 'listview { enabled: false; }' \
             -theme-str "entry { placeholder: \"$placeholder\"; }" \
-            "$@" 2>/dev/null)
+            "$@" 2>>/tmp/focus-rofi-stderr.log)
     else
         result=$(rofi -dmenu -p "$prompt_text" \
             -theme "$theme_file" \
-            "$@" 2>/dev/null)
+            "$@" 2>>/tmp/focus-rofi-stderr.log)
     fi
     local ret=$?
     rm -f "$theme_file"
