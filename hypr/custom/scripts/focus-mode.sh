@@ -109,7 +109,7 @@ edit_blocklist() {
 
         local mesg
         if [[ -n "$domains" ]]; then
-            mesg="Enter = add  ·  Delete on a site = remove  ·  Esc = done"
+            mesg="Enter = add  ·  Alt+d on a site = remove  ·  Esc = done"
         else
             mesg="Type a domain + Enter to add  ·  Esc = done"
         fi
@@ -117,7 +117,7 @@ edit_blocklist() {
         local out rc
         out=$({ [[ -n "$domains" ]] && printf '%s\n' "$domains"; } | \
             focus_rofi "Websites to block" "type a domain + Enter" "list" \
-                -mesg "$mesg" -kb-custom-1 Delete)
+                -mesg "$mesg" -kb-custom-1 Alt+d)
         rc=$?
 
         case "$rc" in

@@ -29,7 +29,7 @@
   - Websites are blocked via /etc/hosts (requires polkit auth on first session)
   - Apps are detected by the distraction monitor and trigger a nudge notification
   - Prefer editing websites interactively: `focus-mode.sh --blocklist`
-    (Enter = add, Delete on a site = remove, Esc = done)
+    (Enter = add, Alt+d on a site = remove, Esc = done)
 -->
 
 ## Blocked Websites

@@ -162,20 +162,28 @@ focus_rofi() {
     theme_file=$(mktemp /tmp/focus-rofi-XXXX.rasi)
     generate_focus_rofi_theme > "$theme_file"
 
+    local err_file
+    err_file=$(mktemp /tmp/focus-rofi-err-XXXX.log)
+
     local result
     if [[ "$input_mode" == "input" ]]; then
         result=$(echo "" | rofi -dmenu -p "$prompt_text" \
             -theme "$theme_file" \
             -theme-str 'listview { enabled: false; }' \
             -theme-str "entry { placeholder: \"$placeholder\"; }" \
-            "$@" 2>>/tmp/focus-rofi-stderr.log)
+            "$@" 2>"$err_file")
     else
         result=$(rofi -dmenu -p "$prompt_text" \
             -theme "$theme_file" \
-            "$@" 2>>/tmp/focus-rofi-stderr.log)
+            "$@" 2>"$err_file")
     fi
     local ret=$?
-    rm -f "$theme_file"
+    # Rofi 2.0 shows config errors in a modal box that eats all input; keep
+    # stderr around so those are diagnosable instead of silently swallowed.
+    if [[ -s "$err_file" ]]; then
+        echo "[$(date '+%H:%M:%S')] rc=$ret prompt=\"$prompt_text\" $(tr '\n' ' ' < "$err_file")" >> /tmp/focus-rofi-stderr.log
+    fi
+    rm -f "$theme_file" "$err_file"
     echo "$result"
     return $ret
 }
